@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+docs/ask环境变量.md
 
 # ===== Node.js =====
 node_modules/
