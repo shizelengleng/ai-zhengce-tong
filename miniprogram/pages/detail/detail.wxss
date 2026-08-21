@@ -1,0 +1,64 @@
+/* detail.wxss —— 详情页样式 */
+.container {
+  padding: 24rpx;
+}
+
+.detail-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+}
+.detail-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 20rpx;
+}
+.detail-tags {
+  margin-bottom: 32rpx;
+}
+.detail-tags .tag {
+  margin-bottom: 8rpx;
+}
+
+.detail-section {
+  margin-bottom: 32rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.detail-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.section-label {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+.section-body {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.7;
+}
+
+.source-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.source-name {
+  color: #333;
+}
+.source-link {
+  color: #52C41A;
+  font-size: 26rpx;
+}
+
+.phone-row .phone-number {
+  color: #FA8C16;
+  font-size: 32rpx;
+  font-weight: 500;
+}

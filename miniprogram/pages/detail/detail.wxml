@@ -1,0 +1,37 @@
+<!-- detail.wxml —— 政策详情页 -->
+<view class="container" wx:if="{{policy}}">
+  <view class="detail-card">
+    <view class="detail-title">{{policy.title}}</view>
+
+    <view class="detail-tags">
+      <text class="tag">{{categoryName}}</text>
+      <text wx:for="{{policy.keywords}}" wx:key="*this" class="tag tag-keyword">{{item}}</text>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-label">政策解读</view>
+      <view class="section-body">{{policy.summary}}</view>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-label">官方出处</view>
+      <view class="section-body source-row" bindtap="onSourceTap">
+        <text class="source-name">{{policy.source}}</text>
+        <text class="source-link">查看原文 ></text>
+      </view>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-label">咨询电话</view>
+      <view class="section-body phone-row" bindtap="onPhoneTap">
+        <text class="phone-number">📞 {{policy.phone}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="btn-primary" bindtap="onSourceTap">查看政策原文</button>
+</view>
+
+<view wx:else class="container">
+  <view class="empty">未找到该政策</view>
+</view>

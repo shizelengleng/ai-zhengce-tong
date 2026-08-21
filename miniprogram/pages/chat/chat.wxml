@@ -1,0 +1,41 @@
+<!-- chat.wxml —— 聊天页 -->
+<view class="container">
+  <!-- 消息列表 -->
+  <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation>
+    <view wx:for="{{messages}}" wx:key="id" id="msg{{item.id}}" class="msg-item {{item.role}}">
+      <view class="bubble {{item.role}}">
+        <text class="bubble-text">{{item.text}}</text>
+        <!-- AI 消息带出处 -->
+        <view wx:if="{{item.role === 'ai' && item.sources.length}}" class="sources">
+          <text class="source-label">出处：</text>
+          <text wx:for="{{item.sources}}" wx:for-item="src" wx:key="title" class="source-tag" bindtap="onSourceTap" data-url="{{src.source_url}}">{{src.title}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载态 -->
+    <view wx:if="{{loading}}" class="msg-item ai">
+      <view class="bubble ai loading">
+        <text class="loading-text">正在思考</text>
+        <view class="dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 快捷问题 -->
+  <scroll-view class="quick-questions" scroll-x>
+    <view wx:for="{{quickQuestions}}" wx:key="*this" class="quick-item" bindtap="onQuickTap" data-q="{{item}}">
+      {{item}}
+    </view>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <view class="input-bar">
+    <input class="input" value="{{inputValue}}" placeholder="输入你的问题…" confirm-type="send" bindinput="onInput" bindconfirm="onSend" adjust-position />
+    <button class="send-btn {{loading ? 'disabled' : ''}}" bindtap="onSend" disabled="{{loading}}">发送</button>
+  </view>
+</view>

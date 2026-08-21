@@ -1,0 +1,32 @@
+<!-- mine.wxml —— 我的页 -->
+<view class="container">
+  <!-- 用户卡片 -->
+  <view class="user-card">
+    <view class="avatar">👤</view>
+    <view class="user-info">
+      <view class="user-name">点击登录</view>
+      <view class="user-desc">登录后可云端保存问答历史</view>
+    </view>
+  </view>
+
+  <!-- 问答历史 -->
+  <view class="section">
+    <view class="section-title">问答历史</view>
+    <view wx:if="{{history.length}}" class="history-list">
+      <view wx:for="{{history}}" wx:key="_id" class="history-item">
+        <view class="history-q">{{item.question}}</view>
+        <view class="history-time">{{item.create_time}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty">暂无历史记录</view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="section">
+    <view class="section-title">关于</view>
+    <view class="about-card">
+      <view class="about-text">AI政策通 · 天河区政策问答助手</view>
+      <view class="about-version">版本 v0.1.0（静态演示版）</view>
+    </view>
+  </view>
+</view>

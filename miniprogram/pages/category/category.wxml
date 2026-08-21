@@ -1,0 +1,26 @@
+<!-- category.wxml —— 政策分类页 -->
+<view class="container">
+  <view class="page-title">政策分类</view>
+
+  <!-- 分类网格 -->
+  <view class="category-grid">
+    <view wx:for="{{categories}}" wx:key="key" class="category-card {{currentCategory === item.key ? 'active' : ''}}" bindtap="onCategoryTap" data-key="{{item.key}}">
+      <view class="cat-icon">{{item.icon}}</view>
+      <view class="cat-name">{{item.name}}</view>
+      <view class="cat-count">{{item.count}} 条</view>
+    </view>
+  </view>
+
+  <!-- 当前分类下的政策列表 -->
+  <view wx:if="{{currentPolicies.length}}" class="policy-list">
+    <view class="list-title">{{currentCategoryName}} · 政策列表</view>
+    <view wx:for="{{currentPolicies}}" wx:key="_id" class="policy-item" bindtap="onPolicyTap" data-id="{{item._id}}">
+      <view class="policy-title">{{item.title}}</view>
+      <view class="policy-meta">
+        <text class="policy-source">{{item.source}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{currentCategory}}" class="empty">该分类暂无政策</view>
+</view>

@@ -1,0 +1,88 @@
+/* mine.wxss —— 我的页样式 */
+.container {
+  padding: 24rpx;
+}
+
+/* 用户卡片 */
+.user-card {
+  display: flex;
+  align-items: center;
+  background: #3A7AFE;
+  border-radius: 16rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 32rpx;
+}
+.avatar {
+  width: 96rpx;
+  height: 96rpx;
+  background: rgba(255,255,255,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  margin-right: 24rpx;
+}
+.user-info {
+  flex: 1;
+}
+.user-name {
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+.user-desc {
+  color: rgba(255,255,255,0.8);
+  font-size: 24rpx;
+}
+
+/* 区块 */
+.section {
+  margin-bottom: 32rpx;
+}
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+/* 历史记录 */
+.history-list {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+.history-item {
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.history-item:last-child {
+  border-bottom: none;
+}
+.history-q {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+.history-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 关于 */
+.about-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+.about-text {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+.about-version {
+  font-size: 24rpx;
+  color: #999;
+}

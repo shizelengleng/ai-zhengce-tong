@@ -1,0 +1,155 @@
+/* chat.wxss —— 聊天页样式 */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 0;
+  background: #F5F6FA;
+}
+
+/* 消息列表 */
+.msg-list {
+  flex: 1;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.msg-item {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+.msg-item.user {
+  justify-content: flex-end;
+}
+.msg-item.ai {
+  justify-content: flex-start;
+}
+
+/* 气泡 */
+.bubble {
+  max-width: 75%;
+  padding: 20rpx 28rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.bubble.user {
+  background: #3A7AFE;
+  color: #fff;
+  border-bottom-right-radius: 6rpx;
+}
+.bubble.ai {
+  background: #fff;
+  color: #333;
+  border-bottom-left-radius: 6rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+.bubble-text {
+  white-space: pre-wrap;
+}
+
+/* 出处 */
+.sources {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #eee;
+  font-size: 24rpx;
+}
+.source-label {
+  color: #999;
+}
+.source-tag {
+  color: #52C41A;
+  margin-left: 8rpx;
+  text-decoration: underline;
+}
+
+/* 加载态 */
+.bubble.loading {
+  display: flex;
+  align-items: center;
+}
+.loading-text {
+  color: #999;
+  margin-right: 8rpx;
+}
+.dots {
+  display: flex;
+  align-items: center;
+}
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  background: #999;
+  border-radius: 50%;
+  margin: 0 4rpx;
+  animation: bounce 1.2s infinite;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-8rpx);
+    opacity: 1;
+  }
+}
+
+/* 快捷问题 */
+.quick-questions {
+  white-space: nowrap;
+  padding: 12rpx 24rpx;
+}
+.quick-item {
+  display: inline-block;
+  background: #fff;
+  color: #3A7AFE;
+  font-size: 26rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  margin-right: 16rpx;
+  border: 1rpx solid #3A7AFE;
+}
+.quick-item:last-child {
+  margin-right: 24rpx;
+}
+
+/* 输入区 */
+.input-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background: #fff;
+  border-top: 1rpx solid #eee;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+}
+.input {
+  flex: 1;
+  background: #F5F6FA;
+  border-radius: 999rpx;
+  padding: 16rpx 28rpx;
+  font-size: 28rpx;
+}
+.send-btn {
+  margin-left: 16rpx;
+  background: #3A7AFE;
+  color: #fff;
+  font-size: 28rpx;
+  padding: 8rpx 32rpx;
+  border-radius: 999rpx;
+  line-height: 2;
+}
+.send-btn::after {
+  border: none;
+}
+.send-btn.disabled {
+  background: #A0BFFF;
+}

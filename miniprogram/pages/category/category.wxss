@@ -1,0 +1,75 @@
+/* category.wxss —— 分类页样式 */
+.container {
+  padding: 24rpx;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 24rpx;
+  color: #333;
+}
+
+/* 分类网格 */
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.category-card {
+  width: 48%;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx 24rpx;
+  margin-bottom: 20rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+  box-sizing: border-box;
+}
+.category-card.active {
+  border: 2rpx solid #3A7AFE;
+}
+.cat-icon {
+  font-size: 56rpx;
+  margin-bottom: 12rpx;
+}
+.cat-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+.cat-count {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 政策列表 */
+.policy-list {
+  margin-top: 16rpx;
+}
+.list-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  color: #333;
+  padding-left: 16rpx;
+  border-left: 6rpx solid #3A7AFE;
+}
+.policy-item {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 28rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+.policy-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+.policy-meta {
+  font-size: 24rpx;
+  color: #999;
+}
