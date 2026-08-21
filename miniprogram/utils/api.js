@@ -1,47 +1,34 @@
-// api.js —— API 封装层
-// 静态阶段返回 mock 数据；后续接云函数只需把函数体换成 wx.cloud.callFunction
-// 页面代码统一调用本模块，替换时无需改动
+// api.js —— API 封装层（真实云函数版）
+// 页面代码统一调用本模块，直接对接微信云开发云函数。
 
-const mock = require('./mock.js')
-
-// 模拟网络延迟，让"正在思考"加载态可见
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-// 问答（核心）
-async function ask({ question }) {
-  await delay(800)
-  // TODO 后续替换为：
-  // return wx.cloud.callFunction({ name: 'ask', data: { question } }).then(r => r.result)
-  return mock.mockAnswer(question)
-}
-
-// 政策列表 / 详情
-async function getPolicies({ category } = {}) {
-  await delay(300)
-  // TODO 后续替换为：
-  // return wx.cloud.callFunction({ name: 'getPolicies', data: { category } }).then(r => r.result)
-  let list = mock.mockPolicies
-  if (category) {
-    list = list.filter(p => p.category === category)
+// 统一调用云函数：ok:false 时抛错，由页面 catch 兜底（显示"请稍后重试"）
+async function callFn(name, data) {
+  const res = await wx.cloud.callFunction({ name, data })
+  const r = res && res.result
+  if (r && r.ok === false) {
+    throw new Error(r.error || name + ' 调用失败')
   }
-  return { policies: list }
+  return r
 }
 
-// 保存历史（静态阶段只返回成功，不真存）
+// 问答（核心）：返回 { answer, sources: [{title, doc_no, source, source_url, phone}] }
+async function ask({ question }) {
+  return callFn('ask', { question })
+}
+
+// 政策列表 / 详情：返回 { policies: [...] }；不传 category 时返回全部
+async function getPolicies({ category } = {}) {
+  return callFn('getPolicies', { category })
+}
+
+// 保存历史：返回 { success }
 async function saveHistory({ question, answer }) {
-  // TODO 后续替换为：
-  // return wx.cloud.callFunction({ name: 'saveHistory', data: { question, answer } }).then(r => r.result)
-  return { success: true }
+  return callFn('saveHistory', { question, answer })
 }
 
-// 读取历史
+// 读取历史：返回 { history: [{question, answer, create_time}] }
 async function getHistory() {
-  await delay(300)
-  // TODO 后续替换为：
-  // return wx.cloud.callFunction({ name: 'getHistory' }).then(r => r.result)
-  return { history: mock.mockHistory }
+  return callFn('getHistory')
 }
 
 module.exports = {

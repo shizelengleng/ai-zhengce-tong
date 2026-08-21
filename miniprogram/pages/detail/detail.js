@@ -19,7 +19,7 @@ Page({
   },
 
   async onLoad(options) {
-    // 根据 id 从 mock 拉取政策
+    // 从云函数拉取全部政策，按 id 匹配详情
     const res = await api.getPolicies({})
     const policy = res.policies.find(p => p._id === options.id)
     this.setData({
