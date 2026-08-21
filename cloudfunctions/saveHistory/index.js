@@ -40,7 +40,7 @@ exports.main = async (event) => {
       },
     })
 
-    return { ok: true }
+    return { ok: true, success: true }
   } catch (e) {
     console.error('saveHistory 异常: ', e)
     return { ok: false, error: String(e && e.message).slice(0, 200) }

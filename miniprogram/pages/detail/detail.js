@@ -7,6 +7,8 @@ const categoryMap = {
   housing: '住房保障',
   employment: '就业创业',
   social_security: '社保补贴',
+  welfare: '救助福利',
+  elderly: '社区养老',
   gov: '政务办事'
 }
 

@@ -9,6 +9,8 @@ Page({
       { key: 'housing', name: '住房保障', icon: '🏠', count: 0 },
       { key: 'employment', name: '就业创业', icon: '💼', count: 0 },
       { key: 'social_security', name: '社保补贴', icon: '💳', count: 0 },
+      { key: 'welfare', name: '救助福利', icon: '🛟', count: 0 },
+      { key: 'elderly', name: '社区养老', icon: '👴', count: 0 },
       { key: 'gov', name: '政务办事', icon: '🏛️', count: 0 }
     ],
     currentCategory: '',       // 当前选中分类

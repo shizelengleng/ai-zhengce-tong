@@ -1,7 +1,8 @@
 /**
  * AI政策通 · 查询问答历史 `getHistory`
  *
- * 事件参数：{ limit }（默认 20，最大 50）
+ * 接口约定（与前端 api.js 一致）：输入 { limit? } → 输出 { ok, history: [...] }
+ * history 每条：{ _id, question, answer, sources[], create_time }（mine 页用 question/create_time）
  * 说明：不使用 orderBy（避免去控制台建索引），改为拉取后按时间在函数内排序。
  */
 
@@ -10,6 +11,19 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+
+// 云函数默认 UTC，转为北京时间显示：YYYY-MM-DD HH:mm
+function fmtTime(d) {
+  if (!d) return ''
+  const t = d instanceof Date ? d : new Date(d)
+  if (isNaN(t.getTime())) return String(d)
+  const bj = new Date(t.getTime() + 8 * 3600 * 1000)
+  const p = (n) => String(n).padStart(2, '0')
+  return (
+    bj.getUTCFullYear() + '-' + p(bj.getUTCMonth() + 1) + '-' + p(bj.getUTCDate()) +
+    ' ' + p(bj.getUTCHours()) + ':' + p(bj.getUTCMinutes())
+  )
+}
 
 exports.main = async (event) => {
   const limit = Math.min(Number((event && event.limit) || 20) || 20, 50)
@@ -41,11 +55,11 @@ exports.main = async (event) => {
         _id: item._id,
         question: item.question,
         answer: item.answer,
-        hits: item.hits || [],
-        createdAt: item.createdAt,
+        sources: item.sources || item.hits || [],
+        create_time: fmtTime(item.createdAt),
       }))
 
-    return { ok: true, list }
+    return { ok: true, history: list }
   } catch (e) {
     console.error('getHistory 异常: ', e)
     return { ok: false, error: String(e && e.message).slice(0, 200) }
