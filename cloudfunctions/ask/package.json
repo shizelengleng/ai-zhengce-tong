@@ -1,0 +1,10 @@
+{
+  "name": "ask",
+  "version": "1.0.0",
+  "description": "AI政策通 · 核心问答云函数：向量检索 + Prompt 拼接 + 大模型生成",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "axios": "^1.7.2"
+  }
+}

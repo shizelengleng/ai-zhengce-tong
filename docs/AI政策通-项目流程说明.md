@@ -120,8 +120,9 @@
         │                  │
 ┌───────▼───────┐   ┌──────▼──────────┐
 │  云数据库       │   │  智谱 GLM-4-Flash │
-│  policies      │   │  (免费大模型API)   │
-│  conversations │   └─────────────────┘
+│  documents    │   │  (免费大模型API)   │
+│  policies     │   └─────────────────┘
+│  conversations│
 └───────────────┘
 ```
 
@@ -129,10 +130,10 @@
 1. 用户在聊天页输入问题
 2. 前端调用云函数 `ask`，传入 `question`
 3. 云函数将用户问题调 Embedding API 转为向量
-4. 云函数在 `policies` 中做**向量语义检索**（余弦相似度），取最相关的 3-5 条
-5. 云函数将命中的政策拼接进系统提示词（Prompt）
-6. 云函数调用智谱 GLM-4-Flash 生成答案
-7. 返回答案文本 + 出处，前端渲染为气泡
+4. 云函数在 `policies` 中做**向量语义检索**（余弦相似度），取最相关的 4 条
+5. 云函数按命中的 `doc_ids` 从 `documents` 集合拉**官方原文**，Prompt 只拼原文（原文锁定）
+6. 云函数调用智谱 GLM-4-Flash 生成答案（只准依据原文回答，不编造）
+7. 返回答案文本 + 出处（标题+文号+链接），前端渲染为气泡
 
 ---
 
@@ -143,7 +144,7 @@
 | 页面 | 路由 | 内容 |
 |---|---|---|
 | 聊天页 | `pages/chat/` | 消息气泡、输入框、快捷问题、AI 思考态 |
-| 分类页 | `pages/category/` | 六大政策分类，网格卡片 |
+| 分类页 | `pages/category/` | 八大政策分类，网格卡片 |
 | 详情页 | `pages/detail/` | 政策解读全文 + 出处 + 电话 + 链接 |
 | 我的页 | `pages/mine/` | 历史记录、关于我们 |
 
@@ -169,26 +170,41 @@
 
 | 云函数 | 输入 | 输出 | 职责 |
 |---|---|---|---|
-| `ask` | `{ question }` | `{ answer, sources[] }` | 向量检索 + Prompt + 调模型 |
+| `ask` | `{ question }` | `{ answer, sources[{title,doc_no,source,source_url,phone}] }` | 向量检索 → 拉原文 → Prompt + 调模型 |
 | `getPolicies` | `{ category?, id? }` | `{ policies[] }` | 分类列表 / 详情 |
 | `saveHistory` | `{ question, answer }` | `{ success }` | 存历史 |
 | `getHistory` | 无 | `{ history[] }` | 读历史 |
 
 ### 6.2 云数据库集合
 
-**policies（政策知识库）**
+**documents（官方原文 · 回答的事实基准）**
 ```
 {
   _id: "xxx",
-  category: "education",        // 分类
-  title: "天河区公办小学入学条件",
-  keywords: ["小学", "入学", "公立", "港澳", "随迁"],
-  summary: "通俗易懂的解答正文……",
-  source: "天河区教育局",        // 官方出处
-  source_url: "https://…",      // 出处链接
-  phone: "020-xxxx",            // 咨询电话
-  tags: ["教育", "入学"],
-  vector: [0.001, 0.002, ...],  // 1024维向量（批量脚本调用Embedding自动生成）
+  id: "doc_5",                 // 供 policies.doc_ids 引用
+  title: "2026年天河区义务教育阶段学校招生工作细则",
+  source: "广州市天河区教育局", // 发文机关
+  doc_no: "穗天教〔2026〕2号", // 文号
+  publish_date: "2026-04-28",
+  source_url: "https://…",
+  original_text: "原文关键条款，逐字摘录……",
+  remark: "主依据文件"
+}
+```
+
+**policies（知识条目 · 检索层）**
+```
+{
+  _id: "xxx",
+  category: "education",        // 分类(八类之一)
+  title: "天河区公办小学入学（人户一致）",
+  keywords: ["小学", "入学", "人户一致"],
+  doc_ids: ["doc_5"],           // 关联的官方原文
+  plain_answer: "通俗解答（5段标准）……",
+  phone: "020-12345",
+  venue: "办理地点",
+  remark: "备注/责任部门",
+  vector: [0.001, 0.002, ...],  // 1024维向量（embed_policies.py 生成）
 }
 ```
 
@@ -199,7 +215,7 @@
   openid: "用户标识",
   question: "孩子想读天河公立小学……",
   answer: "……",
-  policy_ids: ["xxx"],
+  sources: [{ title, doc_no, source_url, phone }],  // 与 ask 返回一致
   create_time: "2026-08-20 12:00"
 }
 ```

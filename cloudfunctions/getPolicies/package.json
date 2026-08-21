@@ -1,0 +1,9 @@
+{
+  "name": "getPolicies",
+  "version": "1.0.0",
+  "description": "政策分类/详情云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

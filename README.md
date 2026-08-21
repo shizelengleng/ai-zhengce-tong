@@ -13,13 +13,19 @@
 ## 目录结构
 
 ```
-docs/               项目文档（流程说明、团队分工）
-data/               政策知识库（policies.json）
-scripts/            向量化脚本
+docs/               项目文档（流程说明、团队分工、政策知识库规划）
+data/               政策知识库（两张 CSV + 生成的 documents.json / policies.json）
+scripts/            CSV→JSON 与向量化脚本
 miniprogram/        小程序前端（页面）
 cloudfunctions/     云函数（ask / getPolicies / saveHistory / getHistory）
 .env                ⚠️ 本地机密配置，勿提交
 ```
+
+## 数据模型（原文锁定）
+
+- `documents` 集合：官方原文（标题 / 文号 / 原文关键条款），**回答的唯一事实来源**
+- `policies` 集合：居民场景条目（关键词 / 通俗解答 / 关联 doc_ids），用于向量检索
+- 流程：用户提问 → 向量检索 policies → 按 doc_ids 拉 documents 原文 → AI 只依据原文回答 → 答案附出处（标题+文号+链接）
 
 ## 文档
 
