@@ -1,4 +1,4 @@
-// category.js —— 分类页逻辑
+// category.js —— 分类页逻辑（count 一次全量加载 + loading 态）
 const api = require('../../utils/api.js')
 
 Page({
@@ -15,38 +15,55 @@ Page({
     ],
     currentCategory: '',       // 当前选中分类
     currentCategoryName: '',
-    currentPolicies: []         // 当前分类下的政策
+    currentPolicies: [],        // 当前分类下的政策
+    allPolicies: [],            // 全量政策缓存（用于点击分类时本地筛选）
+    loading: true               // count 加载中
   },
 
   onShow() {
     this.loadCounts()
   },
 
-  // 加载各分类条目数
+  // 一次全量调用，本地按 category 统计 count（8 次 → 1 次）
   async loadCounts() {
-    const cats = this.data.categories
-    for (let i = 0; i < cats.length; i++) {
-      const res = await api.getPolicies({ category: cats[i].key })
-      cats[i].count = res.policies.length
+    this.setData({ loading: true })
+    try {
+      const res = await api.getPolicies()
+      const all = res.policies || []
+      // 按 category 统计 count
+      const cats = this.data.categories.map(c => ({
+        ...c,
+        count: all.filter(p => p.category === c.key).length
+      }))
+      this.setData({ categories: cats, allPolicies: all, loading: false })
+    } catch (e) {
+      console.error('[category] loadCounts 失败', e)
+      this.setData({ loading: false })
     }
-    this.setData({ categories: cats })
   },
 
-  // 点击分类 → 展示该分类政策
-  async onCategoryTap(e) {
+  // 点击分类 → 从本地缓存筛选（不再调云函数）
+  onCategoryTap(e) {
     const key = e.currentTarget.dataset.key
     const cat = this.data.categories.find(c => c.key === key)
-    const res = await api.getPolicies({ category: key })
+    const policies = this.data.allPolicies.filter(p => p.category === key)
     this.setData({
       currentCategory: key,
       currentCategoryName: cat ? cat.name : '',
-      currentPolicies: res.policies
+      currentPolicies: policies
     })
   },
 
-  // 点击政策 → 跳详情页
+  // 点击政策 → 跳详情页（先存 policy 到 storage，detail 直接用，不再等云函数）
   onPolicyTap(e) {
     const id = e.currentTarget.dataset.id
+    const policy = this.data.allPolicies.find(p => p._id === id)
+    if (policy) {
+      wx.setStorageSync('pendingPolicy', {
+        ...policy,
+        categoryName: (this.data.categories.find(c => c.key === policy.category) || {}).name || ''
+      })
+    }
     wx.navigateTo({ url: '/pages/detail/detail?id=' + id })
   }
 })

@@ -7,12 +7,25 @@ Page({
     inputValue: '',        // 输入框内容
     loading: false,        // 是否正在等待 AI 回复
     scrollToId: '',        // 滚动定位
+    slowToastShown: false,  // 长等待提示是否已显示
+    _slowTimer: null,       // 长等待计时器（供清理）
     quickQuestions: [      // 快捷问题
       '港澳子女怎么入学？',
       '创业补贴怎么申请？',
       '公租房怎么申请？',
       '医保怎么参保？'
     ]
+  },
+
+  onShow() {
+    // 检测从 mine 页"再问一次"传来的问题
+    const reask = wx.getStorageSync('reaskQuestion')
+    if (reask) {
+      wx.removeStorageSync('reaskQuestion')
+      this.setData({ inputValue: reask }, () => {
+        this.onSend()
+      })
+    }
   },
 
   // 输入框内容变化
@@ -25,9 +38,10 @@ Page({
     setTimeout(() => this._scrollToBottom(), 260)
   },
 
-  // 发送消息
+  // 发送消息（防连点 + 长等待提示 + 失败清理计时器）
   async onSend() {
     const question = this.data.inputValue.trim()
+    // 防连点：loading 中 / 正在处理中 / 空内容 → 直接忽略
     if (!question || this.data.loading) return
 
     // 追加用户气泡
@@ -35,13 +49,29 @@ Page({
     this.setData({
       messages: [...this.data.messages, userMsg],
       inputValue: '',
-      loading: true
+      loading: true,
+      slowToastShown: false
     }, () => {
       this._scrollToBottom('msg' + userMsg.id)
     })
 
+    // 长等待提示：> 4.5s 还没回复时提示用户"正在努力思考…"，避免以为卡死
+    if (this._slowTimer) clearTimeout(this._slowTimer)
+    this._slowTimer = setTimeout(() => {
+      if (this.data.loading && !this.data.slowToastShown) {
+        this.setData({ slowToastShown: true })
+        wx.showToast({
+          title: '正在努力思考，可能需要几秒…',
+          icon: 'none',
+          duration: 2500
+        })
+      }
+    }, 4500)
+
     try {
       const res = await api.ask({ question })
+      // 成功：清长等待计时器
+      if (this._slowTimer) { clearTimeout(this._slowTimer); this._slowTimer = null }
       const aiMsg = {
         id: 'a' + Date.now(),
         role: 'ai',
@@ -61,6 +91,7 @@ Page({
       } catch (_) {}
 
     } catch (e) {
+      if (this._slowTimer) { clearTimeout(this._slowTimer); this._slowTimer = null }
       const errMsg = (e && e.message) || '抱歉，出错了'
       this.setData({
         messages: [...this.data.messages, {

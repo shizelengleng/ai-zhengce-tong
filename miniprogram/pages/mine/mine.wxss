@@ -71,6 +71,45 @@
   color: #999;
 }
 
+/* 答案展开区 */
+.history-a-box {
+  margin: 16rpx 0 12rpx 0;
+  padding: 20rpx 24rpx;
+  background: #F7FAFF;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #3A7AFE;
+}
+.history-a {
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.history-actions {
+  margin-top: 16rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+.reask-btn {
+  background: #3A7AFE;
+  color: #fff;
+  font-size: 24rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
+}
+
+/* loading 占位 */
+.loading-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120rpx 0;
+}
+.loading-text {
+  color: #999;
+  font-size: 28rpx;
+}
+
 /* 关于 */
 .about-card {
   background: #fff;

@@ -1,23 +1,39 @@
-<!-- mine.wxml —— 我的页 -->
+<!-- mine.wxml —— 我的页（历史记录显示答案+点击展开+再问一次+去掉假登录） -->
 <view class="container">
-  <!-- 用户卡片 -->
+  <!-- 用户卡片（去掉假登录，改为产品标识） -->
   <view class="user-card">
-    <view class="avatar">👤</view>
+    <view class="avatar">📄</view>
     <view class="user-info">
-      <view class="user-name">点击登录</view>
-      <view class="user-desc">登录后可云端保存问答历史</view>
+      <view class="user-name">AI政策通</view>
+      <view class="user-desc">天河区社区便民政策问答助手</view>
     </view>
   </view>
 
   <!-- 问答历史 -->
   <view class="section">
     <view class="section-title">问答历史</view>
-    <view wx:if="{{history.length}}" class="history-list">
-      <view wx:for="{{history}}" wx:key="_id" class="history-item">
+
+    <!-- loading -->
+    <view wx:if="{{loading}}" class="loading-box">
+      <view class="loading-text">加载中…</view>
+    </view>
+
+    <!-- 历史列表 -->
+    <view wx:elif="{{history.length}}" class="history-list">
+      <view wx:for="{{history}}" wx:key="_id" class="history-item" bindtap="onHistoryTap" data-id="{{item._id}}">
         <view class="history-q">{{item.question}}</view>
+        <!-- 展开时显示答案 -->
+        <view wx:if="{{expandedId === item._id}}" class="history-a-box">
+          <view class="history-a">{{item.answer}}</view>
+          <view class="history-actions">
+            <view class="reask-btn" catchtap="onReaskTap" data-q="{{item.question}}">再问一次</view>
+          </view>
+        </view>
         <view class="history-time">{{item.create_time}}</view>
       </view>
     </view>
+
+    <!-- 空状态 -->
     <view wx:else class="empty">暂无历史记录</view>
   </view>
 
@@ -26,7 +42,7 @@
     <view class="section-title">关于</view>
     <view class="about-card">
       <view class="about-text">AI政策通 · 天河区政策问答助手</view>
-      <view class="about-version">版本 v0.1.0（静态演示版）</view>
+      <view class="about-version">版本 v0.2.0</view>
     </view>
   </view>
 </view>

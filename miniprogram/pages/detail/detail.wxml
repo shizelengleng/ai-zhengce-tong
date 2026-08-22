@@ -1,5 +1,13 @@
-<!-- detail.wxml —— 政策详情页 -->
-<view class="container" wx:if="{{policy}}">
+<!-- detail.wxml —— 政策详情页（补办理方式+核实信息+loading态） -->
+<!-- loading 占位 -->
+<view wx:if="{{loading}}" class="container">
+  <view class="loading-box">
+    <view class="loading-text">加载中…</view>
+  </view>
+</view>
+
+<!-- 详情内容 -->
+<view wx:elif="{{policy}}" class="container">
   <view class="detail-card">
     <view class="detail-title">{{policy.title}}</view>
 
@@ -11,6 +19,12 @@
     <view class="detail-section">
       <view class="section-label">政策解读</view>
       <view class="section-body">{{policy.summary}}</view>
+    </view>
+
+    <!-- 办理方式/地点（橙色高亮，重要信息） -->
+    <view wx:if="{{policy.venue}}" class="detail-section">
+      <view class="section-label">办理方式 / 地点</view>
+      <view class="section-body venue-box">{{policy.venue}}</view>
     </view>
 
     <view class="detail-section">
@@ -27,11 +41,18 @@
         <text class="phone-number">📞 {{policy.phone}}</text>
       </view>
     </view>
+
+    <!-- 核实信息（灰色小字，底部） -->
+    <view wx:if="{{policy.remark}}" class="detail-section remark-section">
+      <view class="section-label">核实信息</view>
+      <view class="section-body remark-body">{{policy.remark}}</view>
+    </view>
   </view>
 
   <button class="btn-primary" bindtap="onSourceTap">查看政策原文</button>
 </view>
 
+<!-- 未找到 -->
 <view wx:else class="container">
   <view class="empty">未找到该政策</view>
 </view>

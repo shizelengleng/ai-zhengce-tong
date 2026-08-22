@@ -62,3 +62,38 @@
   font-size: 32rpx;
   font-weight: 500;
 }
+
+/* 办理方式（橙色高亮，重要信息） */
+.venue-box {
+  background: #FFF7E6;
+  border: 1rpx solid #FFE7BA;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  color: #D46B08;
+  font-weight: 500;
+}
+
+/* 核实信息（灰色小字） */
+.remark-section {
+  margin-top: 8rpx;
+}
+.remark-section .section-label {
+  color: #bbb;
+}
+.remark-body {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.6;
+}
+
+/* loading 占位 */
+.loading-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120rpx 0;
+}
+.loading-text {
+  color: #999;
+  font-size: 28rpx;
+}

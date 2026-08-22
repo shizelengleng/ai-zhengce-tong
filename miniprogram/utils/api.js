@@ -1,10 +1,13 @@
-// api.js —— API 封装层（真实云函数优先，失败自动降级 mock，演示不翻车）
+// api.js —— API 封装层（真实云函数优先 + 客户端15s超时 + 失败降级mock，演示不翻车）
 const mock = require('./mock.js')
 
 // 失败自动熔断：连续失败达阈值后，本次运行内直接走 mock
 let _cloudFailCount = 0
 const CLOUD_FAIL_THRESHOLD = 2
 let _forceMock = false
+
+// 客户端超时（毫秒）：不等服务器 60s 超时，15s 内不返回就立刻降级
+const CALL_CLIENT_TIMEOUT = 15000
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -18,7 +21,7 @@ function formatTime(t) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-// 统一调用云函数：失败 +1 计数，达阈值永久降级 mock
+// 统一调用云函数：客户端 15s 超时 + 失败计数 + 熔断降级 mock
 async function callFn(name, data) {
   if (_forceMock) return { __mock: true }
   if (_cloudFailCount >= CLOUD_FAIL_THRESHOLD) {
@@ -26,27 +29,50 @@ async function callFn(name, data) {
     console.warn('[api] 云函数连续失败' + CLOUD_FAIL_THRESHOLD + '次，本次运行降级 mock')
     return { __mock: true }
   }
-  try {
-    const res = await wx.cloud.callFunction({ name, data })
-    const r = res && res.result
-    if (r && r.ok === false) {
-      throw new Error(r.error || name + ' 调用失败')
-    }
-    _cloudFailCount = 0
-    return r
-  } catch (e) {
-    _cloudFailCount++
-    const code = e && e.errCode ? String(e.errCode) : ''
-    const msg = e && e.message ? e.message : String(e)
-    // 未开通云开发 → 永久降级
+
+  // Promise.race：云函数调用 vs 客户端超时计时器
+  const raceWinner = await Promise.race([
+    (async () => {
+      try {
+        const res = await wx.cloud.callFunction({ name, data })
+        const r = res && res.result
+        if (r && r.ok === false) {
+          throw new Error(r.error || name + ' 返回失败')
+        }
+        _cloudFailCount = 0
+        return { type: 'ok', result: r }
+      } catch (e) {
+        return { type: 'cloud_error', error: e }
+      }
+    })(),
+    new Promise(resolve => {
+      setTimeout(() => resolve({ type: 'client_timeout' }), CALL_CLIENT_TIMEOUT)
+    })
+  ])
+
+  if (raceWinner.type === 'ok') {
+    return raceWinner.result
+  }
+
+  // 失败 / 超时 → 计数 + 降级
+  _cloudFailCount++
+  if (raceWinner.type === 'client_timeout') {
+    console.warn('[api] ' + name + ' 客户端超时（>=' + (CALL_CLIENT_TIMEOUT/1000) + 's），降级 mock')
+  } else {
+    const e = raceWinner.error || {}
+    const code = e.errCode ? String(e.errCode) : ''
+    const msg = e.message || String(e)
     if (code.includes('-601034') || /没有权限|请先开通云开发/.test(msg)) {
       _forceMock = true
       console.warn('[api] 云开发未开通，永久降级 mock')
     } else {
       console.warn('[api] ' + name + ' 失败（第' + _cloudFailCount + '次），降级 mock：', msg)
     }
-    return { __mock: true, __err: e }
   }
+  if (_cloudFailCount >= CLOUD_FAIL_THRESHOLD) {
+    _forceMock = true
+  }
+  return { __mock: true }
 }
 
 // 问答：返回 { answer, sources: [{title, doc_no, source, source_url, phone}] }
@@ -89,7 +115,6 @@ async function getPolicies({ category, id } = {}) {
 
   if (!r.__mock) {
     if (id) {
-      // id 模式：后端返回单条 { data: {...} }
       const p = r.data || r.policy || null
       if (p) {
         p.summary = p.summary || p.plain_answer || ''
@@ -98,7 +123,6 @@ async function getPolicies({ category, id } = {}) {
       }
       return { policy: p }
     }
-    // 列表模式：后端返回 { data: [...] }
     const list = (r.data || r.policies || []).map(p => ({
       ...p,
       summary: p.summary || p.plain_answer || '',
@@ -141,7 +165,6 @@ async function getHistory() {
       }))
     }
   }
-  // MOCK
   await delay(300)
   return { history: mock.mockHistory }
 }

@@ -2,8 +2,13 @@
 <view class="container">
   <view class="page-title">政策分类</view>
 
+  <!-- loading 占位 -->
+  <view wx:if="{{loading}}" class="loading-box">
+    <view class="loading-text">加载中…</view>
+  </view>
+
   <!-- 分类网格 -->
-  <view class="category-grid">
+  <view wx:else class="category-grid">
     <view wx:for="{{categories}}" wx:key="key" class="category-card {{currentCategory === item.key ? 'active' : ''}}" bindtap="onCategoryTap" data-key="{{item.key}}">
       <view class="cat-icon">{{item.icon}}</view>
       <view class="cat-name">{{item.name}}</view>
