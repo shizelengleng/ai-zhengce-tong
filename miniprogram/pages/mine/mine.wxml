@@ -21,15 +21,15 @@
     <!-- 历史列表 -->
     <view wx:elif="{{history.length}}" class="history-list">
       <view wx:for="{{history}}" wx:key="_id" class="history-item" bindtap="onHistoryTap" data-id="{{item._id}}">
-        <view class="history-q">{{item.question}}</view>
+        <text class="history-q" user-select="true">{{item.question}}</text>
         <!-- 展开时显示答案 -->
         <view wx:if="{{expandedId === item._id}}" class="history-a-box">
-          <view class="history-a">{{item.answer}}</view>
+          <text class="history-a" user-select="true">{{item.answer}}</text>
           <view class="history-actions">
             <view class="reask-btn" catchtap="onReaskTap" data-q="{{item.question}}">再问一次</view>
           </view>
         </view>
-        <view class="history-time">{{item.create_time}}</view>
+        <text class="history-time" user-select="true">{{item.create_time}}</text>
       </view>
     </view>
 

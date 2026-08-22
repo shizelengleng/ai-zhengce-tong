@@ -9,7 +9,7 @@
 <!-- 详情内容 -->
 <view wx:elif="{{policy}}" class="container">
   <view class="detail-card">
-    <view class="detail-title">{{policy.title}}</view>
+    <view class="detail-title" user-select="true">{{policy.title}}</view>
 
     <view class="detail-tags">
       <text class="tag">{{categoryName}}</text>
@@ -18,19 +18,19 @@
 
     <view class="detail-section">
       <view class="section-label">政策解读</view>
-      <view class="section-body">{{policy.summary}}</view>
+      <text class="section-body" user-select="true">{{policy.summary}}</text>
     </view>
 
     <!-- 办理方式/地点（橙色高亮，重要信息） -->
     <view wx:if="{{policy.venue}}" class="detail-section">
       <view class="section-label">办理方式 / 地点</view>
-      <view class="section-body venue-box">{{policy.venue}}</view>
+      <text class="section-body venue-box" user-select="true">{{policy.venue}}</text>
     </view>
 
     <view class="detail-section">
       <view class="section-label">官方出处</view>
       <view class="section-body source-row" bindtap="onSourceTap">
-        <text class="source-name">{{policy.source}}</text>
+        <text class="source-name" user-select="true">{{policy.source}}</text>
         <text class="source-link">查看原文 ></text>
       </view>
     </view>
@@ -38,14 +38,14 @@
     <view class="detail-section">
       <view class="section-label">咨询电话</view>
       <view class="section-body phone-row" bindtap="onPhoneTap">
-        <text class="phone-number">📞 {{policy.phone}}</text>
+        <text class="phone-number" user-select="true">📞 {{policy.phone}}</text>
       </view>
     </view>
 
     <!-- 核实信息（灰色小字，底部） -->
     <view wx:if="{{policy.remark}}" class="detail-section remark-section">
       <view class="section-label">核实信息</view>
-      <view class="section-body remark-body">{{policy.remark}}</view>
+      <text class="section-body remark-body" user-select="true">{{policy.remark}}</text>
     </view>
   </view>
 

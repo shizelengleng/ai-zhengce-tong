@@ -4,19 +4,19 @@
   <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation enable-flex>
     <view wx:for="{{messages}}" wx:key="id" id="msg{{item.id}}" class="msg-item {{item.role}}">
       <view class="bubble {{item.role}}">
-        <text class="bubble-text">{{item.text}}</text>
+        <text class="bubble-text" user-select="true">{{item.text}}</text>
         <!-- AI 消息带出处 -->
         <view wx:if="{{item.role === 'ai' && item.sources.length}}" class="sources">
           <view class="sources-title">引用出处（点击可复制链接或拨打）</view>
           <view wx:for="{{item.sources}}" wx:for-item="src" wx:key="title" class="source-item" bindtap="onSourceTap" data-src="{{src}}">
             <view class="source-main">
-              <text class="source-title">{{src.title}}</text>
-              <text wx:if="{{src.doc_no}}" class="source-docno">{{src.doc_no}}</text>
+              <text class="source-title" user-select="true">{{src.title}}</text>
+              <text wx:if="{{src.doc_no}}" class="source-docno" user-select="true">{{src.doc_no}}</text>
             </view>
             <view class="source-meta">
-              <text wx:if="{{src.source}}" class="meta-source">{{src.source}}</text>
-              <text wx:if="{{src.phone}}" class="meta-phone">📞 {{src.phone}}</text>
-              <text wx:if="{{src.source_url}}" class="meta-link">🔗 查看原文</text>
+              <text wx:if="{{src.source}}" class="meta-source" user-select="true">{{src.source}}</text>
+              <text wx:if="{{src.phone}}" class="meta-phone" user-select="true">📞 {{src.phone}}</text>
+              <text wx:if="{{src.source_url}}" class="meta-link" user-select="true">🔗 查看原文</text>
             </view>
           </view>
         </view>
