@@ -1,14 +1,24 @@
 <!-- chat.wxml —— 聊天页 -->
 <view class="container">
   <!-- 消息列表 -->
-  <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation>
+  <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation enable-flex>
     <view wx:for="{{messages}}" wx:key="id" id="msg{{item.id}}" class="msg-item {{item.role}}">
       <view class="bubble {{item.role}}">
         <text class="bubble-text">{{item.text}}</text>
         <!-- AI 消息带出处 -->
         <view wx:if="{{item.role === 'ai' && item.sources.length}}" class="sources">
-          <text class="source-label">出处：</text>
-          <text wx:for="{{item.sources}}" wx:for-item="src" wx:key="title" class="source-tag" bindtap="onSourceTap" data-url="{{src.source_url}}">{{src.title}}</text>
+          <view class="sources-title">引用出处（点击可复制链接或拨打）</view>
+          <view wx:for="{{item.sources}}" wx:for-item="src" wx:key="title" class="source-item" bindtap="onSourceTap" data-src="{{src}}">
+            <view class="source-main">
+              <text class="source-title">{{src.title}}</text>
+              <text wx:if="{{src.doc_no}}" class="source-docno">{{src.doc_no}}</text>
+            </view>
+            <view class="source-meta">
+              <text wx:if="{{src.source}}" class="meta-source">{{src.source}}</text>
+              <text wx:if="{{src.phone}}" class="meta-phone">📞 {{src.phone}}</text>
+              <text wx:if="{{src.source_url}}" class="meta-link">🔗 查看原文</text>
+            </view>
+          </view>
         </view>
       </view>
     </view>
@@ -24,6 +34,9 @@
         </view>
       </view>
     </view>
+
+    <!-- 底部空垫，防最后一条贴边 -->
+    <view class="msg-bottom-pad"></view>
   </scroll-view>
 
   <!-- 快捷问题 -->
@@ -35,7 +48,7 @@
 
   <!-- 输入区 -->
   <view class="input-bar">
-    <input class="input" value="{{inputValue}}" placeholder="输入你的问题…" confirm-type="send" bindinput="onInput" bindconfirm="onSend" adjust-position />
+    <input class="input" value="{{inputValue}}" placeholder="输入你的问题…" confirm-type="send" adjust-position bindinput="onInput" bindconfirm="onSend" bindfocus="onInputFocus" />
     <button class="send-btn {{loading ? 'disabled' : ''}}" bindtap="onSend" disabled="{{loading}}">发送</button>
   </view>
 </view>

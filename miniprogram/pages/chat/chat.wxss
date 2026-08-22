@@ -1,15 +1,21 @@
-/* chat.wxss —— 聊天页样式 */
+/* chat.wxss —— 聊天页样式（原生 tabBar 模式：不写 100vh，避免输入栏被 tabBar 盖住） */
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: #F5F6FA;
+  box-sizing: border-box;
 }
 
-/* 消息列表 */
+/* 消息列表：height:0 + flex:1 是 flex 滚动容器的标准 hack，
+   让 scroll-view 在 flex 父容器里获得明确可滚动高度 */
 .msg-list {
   flex: 1;
+  height: 0;
   padding: 24rpx;
   box-sizing: border-box;
 }
@@ -49,21 +55,56 @@
   white-space: pre-wrap;
 }
 
-/* 出处 */
+/* 出处卡片 */
 .sources {
-  margin-top: 16rpx;
+  margin-top: 20rpx;
   padding-top: 16rpx;
   border-top: 1rpx solid #eee;
+}
+.sources-title {
   font-size: 24rpx;
+  color: #888;
+  margin-bottom: 12rpx;
 }
-.source-label {
-  color: #999;
+.source-item {
+  background: #F7FAFF;
+  border: 1rpx solid #D7E4FB;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
 }
-.source-tag {
-  color: #52C41A;
-  margin-left: 8rpx;
-  text-decoration: underline;
+.source-item:last-child { margin-bottom: 0; }
+.source-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
 }
+.source-title {
+  color: #222;
+  font-weight: 500;
+  font-size: 26rpx;
+}
+.source-docno {
+  color: #3A7AFE;
+  background: #E8F0FF;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+.source-meta {
+  font-size: 24rpx;
+  color: #555;
+  line-height: 1.6;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.meta-source { color: #555; }
+.meta-phone  { color: #FA8C16; }
+.meta-link   { color: #52C41A; }
+.msg-bottom-pad { height: 16rpx; }
 
 /* 加载态 */
 .bubble.loading {
@@ -129,7 +170,6 @@
   padding: 16rpx 24rpx;
   background: #fff;
   border-top: 1rpx solid #eee;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
 }
 .input {
   flex: 1;

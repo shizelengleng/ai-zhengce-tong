@@ -1,4 +1,4 @@
-// detail.js —— 政策详情页逻辑
+// detail.js —— 政策详情页逻辑（改用 id 详情模式，字段兼容后端返回）
 const api = require('../../utils/api.js')
 
 const categoryMap = {
@@ -19,19 +19,22 @@ Page({
   },
 
   async onLoad(options) {
-    // 从云函数拉取全部政策，按 id 匹配详情
-    const res = await api.getPolicies({})
-    const policy = res.policies.find(p => p._id === options.id)
+    // 走 id 详情模式：后端 enrichPolicies 会补充出处/链接/文号
+    const res = await api.getPolicies({ id: options.id })
+    const policy = res.policy || null
     this.setData({
       policy: policy,
-      categoryName: policy ? categoryMap[policy.category] || '' : ''
+      categoryName: policy ? (categoryMap[policy.category] || '') : ''
     })
   },
 
-  // 查看原文（静态阶段复制链接到剪贴板）
+  // 查看原文 → 复制链接
   onSourceTap() {
     const url = this.data.policy.source_url
-    if (!url) return
+    if (!url) {
+      wx.showToast({ title: '暂无原文链接', icon: 'none' })
+      return
+    }
     wx.setClipboardData({
       data: url,
       success: () => {
@@ -40,10 +43,14 @@ Page({
     })
   },
 
-  // 拨打电话
+  // 拨打电话（支持多号，取第一个）
   onPhoneTap() {
     const phone = this.data.policy.phone
     if (!phone) return
-    wx.makePhoneCall({ phoneNumber: phone })
+    const first = String(phone).split(/[、,，\/\s]+/)[0]
+    wx.makePhoneCall({
+      phoneNumber: first,
+      fail: () => wx.showToast({ title: '取消拨号', icon: 'none' })
+    })
   }
 })
