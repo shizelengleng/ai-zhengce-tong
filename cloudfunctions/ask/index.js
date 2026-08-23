@@ -441,6 +441,32 @@ function isFollowUp(q) {
   return /那|这|它|上面|刚才|之前|然后|还有|具体|呢/.test(s)
 }
 
+// 连续追问时的锚点：从最近一轮往前，找到最近一条"非追问"的问题。
+// 例：Q1"出租屋怎么备案"(锚点) → Q2"那材料呢"(追问) → Q3"那去哪办呢"(追问)，
+// Q3 合并检索用 Q1 而不是 Q2，否则"那材料呢 那去哪办呢"会丢掉"出租屋"这个真正的话题。
+function findAnchorQuestion(rows) {
+  const list = rows || []
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (!isFollowUp(list[i].question || '')) {
+      return list[i].question || ''
+    }
+  }
+  return list.length ? list[list.length - 1].question || '' : ''
+}
+
+// 把最近几轮对话（用户问题 + AI 回答）拼成上下文，让追问能直接参照上一轮的 AI 回答。
+// 上一轮的 AI 回答本身就是最好的上下文——即使检索没抓住话题，模型也能从回答里知道在聊什么。
+function buildConversationContext(rows) {
+  const list = rows || []
+  if (!list.length) return ''
+  const parts = list.map((r) => {
+    const q = (r.question || '').slice(0, 200)
+    const a = (r.answer || '').slice(0, 500)
+    return `用户：${q}\n助手：${a}`
+  })
+  return `【对话上下文（最近${list.length}轮，当前问题若指代其中内容，以此为准）】\n${parts.join('\n\n')}`
+}
+
 // ---------- 6.6 通用常识问答（纯规则，零检索、零联网） ----------
 // 只对"本地无政策命中"的泛泛问题生效（点名具体政策的问题有本地命中，走正常 RAG）。
 // 目的：避免"咨询电话是多少"这类问题走联网拿一堆无关出处，直接给稳妥的通用答复。
@@ -623,13 +649,18 @@ exports.main = async (event) => {
     // 多轮追问：上一轮有对话 + 当前问题是短句带指代/承接词（如"那材料呢"）→ 合并上一轮问题再检索，
     // 让追问能接到上文的政策话题，而不是当成无头问题重新搜。前端无需改动。
     const openid = cloud.getWXContext().OPENID || ''
-    const recent = await loadRecentHistory(openid, 2)
-    const prev = recent.length ? recent[recent.length - 1] : null
-    const followUp = !!(prev && isFollowUp(question))
+    // 读最近 5 轮，支持连续多轮追问（"那材料呢"→"那去哪办呢"）时回溯到最初定话题的那一轮
+    const recent = await loadRecentHistory(openid, 5)
+    const followUp = recent.length > 0 && isFollowUp(question)
     let searchText = question
+    let conversationCtx = ''
     if (followUp) {
-      searchText = `${prev.question} ${question}`
-      console.log(`[ask] 追问：合并上一轮 → "${searchText.slice(0, 40)}"`)
+      // 锚点 = 最近一条"非追问"的问题（连续追问时往前回溯），保证检索回到最初的话题
+      const anchor = findAnchorQuestion(recent)
+      searchText = `${anchor} ${question}`
+      // 把最近几轮的用户问题+AI回答一并喂给模型，追问直接以上一轮回答为参照，不再只靠检索猜话题
+      conversationCtx = buildConversationContext(recent)
+      console.log(`[ask] 追问(共${recent.length}轮)：锚点="${anchor.slice(0, 20)}" 检索="${searchText.slice(0, 40)}"`)
     }
 
     const questionVec = await getEmbedding(searchText)
@@ -663,6 +694,7 @@ exports.main = async (event) => {
             {
               role: 'user',
               content:
+                (conversationCtx ? conversationCtx + '\n\n' : '') +
                 `【政策资料（联网检索的官方/权威来源，非本地知识库）】\n${supplement}\n\n` +
                 `【用户问题】\n${searchText}\n\n` +
                 `请依据上面的检索资料回答；若资料仍不足以回答，请明确告知"暂未检索到相关政策"，并引导拨打 020-12345。`,
@@ -686,12 +718,12 @@ exports.main = async (event) => {
     }
 
     let dbUserContent = buildPrompt(question, hits, type)
-    // 追问时带上上一轮问答，让模型明白"那材料呢"指代上一轮讨论的政策话题
-    if (followUp && prev) {
+    // 追问时把最近几轮"用户问题+AI回答"喂进去，让模型明白"那材料呢"指代上文讨论的政策话题，
+    // 而不是只靠合并检索猜话题——上一轮的 AI 回答本身就是最好的上下文。
+    if (followUp && conversationCtx) {
       dbUserContent =
-        `【对话上下文（上一轮）】\n用户：${(prev.question || '').slice(0, 200)}\n` +
-        `助手：${(prev.answer || '').slice(0, 400)}\n\n` +
-        `（当前问题若指代上文内容，请结合上文与本次检索到的政策资料回答；"主依据"仍以本次检索到的政策为准）\n\n` +
+        `${conversationCtx}\n\n` +
+        `（当前问题指代上文内容，请以上文讨论的政策话题为准，并结合本次检索到的政策资料回答；"主依据"仍以本次检索到的政策为准）\n\n` +
         dbUserContent
     }
     const messages = [
@@ -732,6 +764,7 @@ exports.main = async (event) => {
             {
               role: 'user',
               content:
+                (conversationCtx ? conversationCtx + '\n\n' : '') +
                 `之前的回答：\n${stripMarker(firstAnswer)}\n\n` +
                 `【补充资料】\n${buildSupplement(feed)}\n\n` +
                 `【用户问题】\n${question}\n\n` +
