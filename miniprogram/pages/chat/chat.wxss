@@ -144,6 +144,19 @@
   }
 }
 
+/* 输入栏新对话按钮 */
+.action-btn {
+  background: #fff;
+  color: #52C41A;
+  font-size: 24rpx;
+  padding: 14rpx 20rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #52C41A;
+  margin-right: 12rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* 快捷问题 */
 .quick-questions {
   white-space: nowrap;

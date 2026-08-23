@@ -24,7 +24,9 @@
     <!-- 办理方式/地点（橙色高亮，重要信息） -->
     <view wx:if="{{policy.venue}}" class="detail-section">
       <view class="section-label">办理方式 / 地点</view>
-      <text class="section-body venue-box" user-select="true">{{policy.venue}}</text>
+      <view class="venue-box">
+        <text class="venue-text" user-select="true">{{policy.venue}}</text>
+      </view>
     </view>
 
     <view class="detail-section">

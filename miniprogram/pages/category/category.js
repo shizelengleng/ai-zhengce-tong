@@ -21,6 +21,8 @@ Page({
   },
 
   onShow() {
+    // 已有缓存则不重新加载，避免切换页面回来要等5秒、列表残留
+    if (this.data.allPolicies.length) return
     this.loadCounts()
   },
 

@@ -69,8 +69,12 @@
   border: 1rpx solid #FFE7BA;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
+}
+.venue-text {
+  font-size: 30rpx;
   color: #D46B08;
   font-weight: 500;
+  line-height: 1.7;
 }
 
 /* 核实信息（灰色小字） */

@@ -9,11 +9,15 @@ Page({
     scrollToId: '',        // 滚动定位
     slowToastShown: false,  // 长等待提示是否已显示
     _slowTimer: null,       // 长等待计时器（供清理）
-    quickQuestions: [      // 快捷问题
-      '港澳子女怎么入学？',
-      '创业补贴怎么申请？',
-      '公租房怎么申请？',
-      '医保怎么参保？'
+    quickQuestions: [      // 快捷问题（覆盖 8 分类）
+      '港澳子女怎么入学？',     // 教育入学
+      '医保怎么参保？',         // 医疗保障
+      '公租房怎么申请？',       // 住房保障
+      '创业补贴怎么申请？',     // 就业创业
+      '养老金怎么领？',         // 社保补贴
+      '低保怎么申请？',         // 救助福利
+      '老年食堂怎么吃？',       // 社区养老
+      '居住证怎么办？'          // 政务办事
     ]
   },
 
@@ -106,6 +110,12 @@ Page({
       })
       wx.showToast({ title: errMsg, icon: 'none' })
     }
+  },
+
+  // 开启新对话：清空当前消息（历史已保存到后端）
+  onNewChat() {
+    this.setData({ messages: [], inputValue: '' })
+    wx.showToast({ title: '已开启新对话', icon: 'none' })
   },
 
   // 点击快捷问题

@@ -47,6 +47,9 @@
   color: #333;
   margin-bottom: 16rpx;
 }
+.section-title.clickable {
+  color: #3A7AFE;
+}
 
 /* 历史记录 */
 .history-list {
@@ -61,10 +64,23 @@
 .history-item:last-child {
   border-bottom: none;
 }
+.history-q-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
 .history-q {
   font-size: 30rpx;
   color: #333;
-  margin-bottom: 8rpx;
+  flex: 1;
+}
+.expand-hint {
+  font-size: 22rpx;
+  color: #3A7AFE;
+  white-space: nowrap;
+  margin-left: 16rpx;
+  flex-shrink: 0;
 }
 .history-time {
   font-size: 24rpx;

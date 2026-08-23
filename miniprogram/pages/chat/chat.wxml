@@ -48,6 +48,7 @@
 
   <!-- 输入区 -->
   <view class="input-bar">
+    <view wx:if="{{messages.length}}" class="action-btn" bindtap="onNewChat">🔄新对话</view>
     <input class="input" value="{{inputValue}}" placeholder="输入你的问题…" confirm-type="send" adjust-position bindinput="onInput" bindconfirm="onSend" bindfocus="onInputFocus" />
     <button class="send-btn {{loading ? 'disabled' : ''}}" bindtap="onSend" disabled="{{loading}}">发送</button>
   </view>

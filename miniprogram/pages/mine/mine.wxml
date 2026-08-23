@@ -9,32 +9,39 @@
     </view>
   </view>
 
-  <!-- 问答历史 -->
+  <!-- 问答历史（默认收起，点击标题展开列表） -->
   <view class="section">
-    <view class="section-title">问答历史</view>
-
-    <!-- loading -->
-    <view wx:if="{{loading}}" class="loading-box">
-      <view class="loading-text">加载中…</view>
+    <view class="section-title clickable" bindtap="onToggleHistory">
+      问答历史（{{history.length}} 条）{{showHistory ? '▲' : '▼'}}
     </view>
 
-    <!-- 历史列表 -->
-    <view wx:elif="{{history.length}}" class="history-list">
-      <view wx:for="{{history}}" wx:key="_id" class="history-item" bindtap="onHistoryTap" data-id="{{item._id}}">
-        <text class="history-q" user-select="true">{{item.question}}</text>
-        <!-- 展开时显示答案 -->
-        <view wx:if="{{expandedId === item._id}}" class="history-a-box">
-          <text class="history-a" user-select="true">{{item.answer}}</text>
-          <view class="history-actions">
-            <view class="reask-btn" catchtap="onReaskTap" data-q="{{item.question}}">再问一次</view>
-          </view>
-        </view>
-        <text class="history-time" user-select="true">{{item.create_time}}</text>
+    <view wx:if="{{showHistory}}">
+      <!-- loading -->
+      <view wx:if="{{loading}}" class="loading-box">
+        <view class="loading-text">加载中…</view>
       </view>
-    </view>
 
-    <!-- 空状态 -->
-    <view wx:else class="empty">暂无历史记录</view>
+      <!-- 历史列表 -->
+      <view wx:elif="{{history.length}}" class="history-list">
+        <view wx:for="{{history}}" wx:key="_id" class="history-item" bindtap="onHistoryTap" data-id="{{item._id}}">
+          <view class="history-q-row">
+            <text class="history-q">{{item.question}}</text>
+            <text class="expand-hint">{{expandedId === item._id ? '收起 ▲' : '展开 ▼'}}</text>
+          </view>
+          <!-- 展开时显示答案 -->
+          <view wx:if="{{expandedId === item._id}}" class="history-a-box">
+            <text class="history-a" user-select="true">{{item.answer}}</text>
+            <view class="history-actions">
+              <view class="reask-btn" catchtap="onReaskTap" data-q="{{item.question}}">再问一次</view>
+            </view>
+          </view>
+          <text class="history-time">{{item.create_time}}</text>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:else class="empty">暂无历史记录</view>
+    </view>
   </view>
 
   <!-- 关于 -->

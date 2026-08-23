@@ -5,14 +5,28 @@ Page({
   data: {
     history: [],
     loading: true,
-    expandedId: ''    // 当前展开的历史项 _id，空则全部收起
+    expandedId: '',    // 当前展开的历史项 _id，空则全部收起
+    showHistory: false  // 历史列表默认收起，点击标题展开
+  },
+
+  // 点击标题 → 展开/收起整个历史列表
+  onToggleHistory() {
+    this.setData({ showHistory: !this.data.showHistory })
   },
 
   async onShow() {
-    this.setData({ loading: true })
+    // 有缓存先不显示 loading（秒出旧数据），后台静默刷新
+    if (!this.data.history.length) {
+      this.setData({ loading: true })
+    }
     try {
       const res = await api.getHistory()
-      this.setData({ history: res.history || [], loading: false })
+      const list = res.history || []
+      this.setData({
+        history: list,
+        loading: false,
+        expandedId: ''   // 默认全部折叠，点击问题展开答案
+      })
     } catch (e) {
       console.error('[mine] getHistory 失败', e)
       this.setData({ loading: false })
