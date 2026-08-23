@@ -8,6 +8,8 @@ let _forceMock = false
 
 // 客户端超时（毫秒）：不等服务器 60s 超时，15s 内不返回就立刻降级
 const CALL_CLIENT_TIMEOUT = 15000
+// ask 是慢接口（向量检索+大模型生成+可能的联网补答，云函数超时 60s），给足 59s 让真实答案有机会返回，别再 15s 就降级
+const ASK_CLIENT_TIMEOUT = 59000
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -21,14 +23,16 @@ function formatTime(t) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-// 统一调用云函数：客户端 15s 超时 + 失败计数 + 熔断降级 mock
-async function callFn(name, data) {
+// 统一调用云函数：可自定义客户端超时 + 失败计数 + 熔断降级 mock
+async function callFn(name, data, timeoutMs) {
   if (_forceMock) return { __mock: true }
   if (_cloudFailCount >= CLOUD_FAIL_THRESHOLD) {
     _forceMock = true
     console.warn('[api] 云函数连续失败' + CLOUD_FAIL_THRESHOLD + '次，本次运行降级 mock')
     return { __mock: true }
   }
+
+  const t = timeoutMs || CALL_CLIENT_TIMEOUT
 
   // Promise.race：云函数调用 vs 客户端超时计时器
   const raceWinner = await Promise.race([
@@ -46,7 +50,7 @@ async function callFn(name, data) {
       }
     })(),
     new Promise(resolve => {
-      setTimeout(() => resolve({ type: 'client_timeout' }), CALL_CLIENT_TIMEOUT)
+      setTimeout(() => resolve({ type: 'client_timeout' }), t)
     })
   ])
 
@@ -54,20 +58,22 @@ async function callFn(name, data) {
     return raceWinner.result
   }
 
-  // 失败 / 超时 → 计数 + 降级
-  _cloudFailCount++
+  // 客户端超时：只是响应慢，不代表云函数挂了 → 不记入熔断计数，让调用方自行提示重试
   if (raceWinner.type === 'client_timeout') {
-    console.warn('[api] ' + name + ' 客户端超时（>=' + (CALL_CLIENT_TIMEOUT/1000) + 's），降级 mock')
+    console.warn('[api] ' + name + ' 客户端超时（>=' + (t / 1000) + 's）')
+    return { __mock: true, __timeout: true }
+  }
+
+  // 真实云函数错误 → 计数 + 降级
+  _cloudFailCount++
+  const e = raceWinner.error || {}
+  const code = e.errCode ? String(e.errCode) : ''
+  const msg = e.message || String(e)
+  if (code.includes('-601034') || /没有权限|请先开通云开发/.test(msg)) {
+    _forceMock = true
+    console.warn('[api] 云开发未开通，永久降级 mock')
   } else {
-    const e = raceWinner.error || {}
-    const code = e.errCode ? String(e.errCode) : ''
-    const msg = e.message || String(e)
-    if (code.includes('-601034') || /没有权限|请先开通云开发/.test(msg)) {
-      _forceMock = true
-      console.warn('[api] 云开发未开通，永久降级 mock')
-    } else {
-      console.warn('[api] ' + name + ' 失败（第' + _cloudFailCount + '次），降级 mock：', msg)
-    }
+    console.warn('[api] ' + name + ' 失败（第' + _cloudFailCount + '次），降级 mock：', msg)
   }
   if (_cloudFailCount >= CLOUD_FAIL_THRESHOLD) {
     _forceMock = true
@@ -76,9 +82,10 @@ async function callFn(name, data) {
 }
 
 // 问答：返回 { answer, sources: [{title, doc_no, source, source_url, phone}] }
+// 注意：ask 超时/失败时绝不返回 mock 假答案（会误导），只如实提示重试。
 async function ask({ question }) {
-  const r = await callFn('ask', { question })
-  if (!r.__mock) {
+  const r = await callFn('ask', { question }, ASK_CLIENT_TIMEOUT)
+  if (r && !r.__mock && !r.__timeout) {
     return {
       answer: r.answer || '',
       sources: (r.sources || []).map(s => ({
@@ -90,18 +97,13 @@ async function ask({ question }) {
       }))
     }
   }
-  // MOCK
-  await delay(800)
-  const m = mock.mockAnswer(question)
+  // 超时或失败：如实提示，不返回编造的假政策答案
+  const isTimeout = r && r.__timeout
   return {
-    answer: m.answer,
-    sources: (m.sources || []).map(s => ({
-      title: s.title,
-      doc_no: s.doc_no || '',
-      source: s.source || '',
-      source_url: s.source_url || '',
-      phone: s.phone || ''
-    }))
+    answer: isTimeout
+      ? '抱歉，服务响应较慢（已等待 60 秒）。请稍后重试，或换个更具体的说法（如直接说出政策名称"公租房""积分入学"）。\n\n如有急事，可拨打广州政务服务热线 020-12345。'
+      : '服务暂时不可用，请稍后重试；或拨打广州政务服务热线 020-12345 咨询。',
+    sources: []
   }
 }
 
