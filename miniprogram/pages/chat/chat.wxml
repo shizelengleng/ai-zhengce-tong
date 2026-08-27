@@ -1,46 +1,133 @@
-<!-- chat.wxml —— 聊天页 -->
-<view class="container">
-  <!-- 消息列表 -->
-  <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation enable-flex>
-    <view wx:for="{{messages}}" wx:key="id" id="msg{{item.id}}" class="msg-item {{item.role}}">
-      <view class="bubble {{item.role}}">
-        <text class="bubble-text" user-select="true">{{item.text}}</text>
-        <!-- AI 消息带出处 -->
-        <view wx:if="{{item.role === 'ai' && item.sources.length}}" class="sources">
-          <view class="sources-title">引用出处（点击可复制链接或拨打）</view>
-          <view wx:for="{{item.sources}}" wx:for-item="src" wx:key="title" class="source-item" bindtap="onSourceTap" data-src="{{src}}">
-            <view class="source-main">
-              <text class="source-title" user-select="true">{{src.title}}</text>
-              <text wx:if="{{src.doc_no}}" class="source-docno" user-select="true">{{src.doc_no}}</text>
+<!-- chat.wxml —— 聊天页（融合版：数据看板 + 搜索 + 热门问题 + 最近问答） -->
+<nav-bar title="AI政策通" show-back="{{false}}" right-icon="🔍" bind:righttap="onSearchTap"></nav-bar>
+<view class="chat-container" style="top: {{navTotalHeight}}px;">
+
+  <!-- ========== 无消息模式：首页布局 ========== -->
+  <block wx:if="{{!messages.length && !loading}}">
+    <scroll-view class="home-scroll" scroll-y>
+
+      <!-- 蓝色顶部延伸区域：数据看板 -->
+      <view class="blue-hero">
+        <view class="stats-row">
+          <view wx:for="{{statsData}}" wx:key="label" class="stats-card">
+            <view class="stats-num">{{item.num}}</view>
+            <view class="stats-label">{{item.label}}</view>
+          </view>
+        </view>
+
+        <!-- 搜索栏 -->
+        <view class="search-bar hero-search">
+          <text class="search-icon">🔍</text>
+          <input class="search-input" placeholder="搜索政策或输入问题…" placeholder-class="search-placeholder" value="{{searchValue}}" confirm-type="search" bindinput="onSearchInput" bindconfirm="onSearchConfirm" />
+        </view>
+      </view>
+
+      <view class="home-content">
+        <!-- 欢迎区域 -->
+        <view class="welcome-section">
+          <view class="welcome-avatar">
+            <text class="welcome-avatar-icon">💬</text>
+          </view>
+          <view class="welcome-title">您好，我是AI政策通</view>
+          <view class="welcome-desc">天河区社区便民政策问答助手，有问题尽管问我~</view>
+        </view>
+
+        <!-- 热门问题 2列网格 -->
+        <view class="section-title">热门问题</view>
+        <view class="hot-grid">
+          <view wx:for="{{hotQuestions}}" wx:key="q" class="hot-card" bindtap="onHotTap" data-q="{{item.q}}">
+            <view class="hot-icon">{{item.icon}}</view>
+            <view class="hot-text">{{item.q}}</view>
+            <view class="hot-arrow">›</view>
+          </view>
+        </view>
+
+        <!-- 最近问答 -->
+        <view class="section-title" wx:if="{{recentChats.length}}">
+          最近问答
+          <text class="title-extra">查看全部 ›</text>
+        </view>
+        <view class="recent-list" wx:if="{{recentChats.length}}">
+          <view wx:for="{{recentChats}}" wx:key="id" class="recent-item" bindtap="onRecentTap" data-q="{{item.question}}">
+            <view class="recent-avatar">Q</view>
+            <view class="recent-info">
+              <view class="recent-q">{{item.question}}</view>
+              <view class="recent-time">{{item.time}}</view>
             </view>
-            <view class="source-meta">
-              <text wx:if="{{src.source}}" class="meta-source" user-select="true">{{src.source}}</text>
-              <text wx:if="{{src.phone}}" class="meta-phone" user-select="true">📞 {{src.phone}}</text>
-              <text wx:if="{{src.source_url}}" class="meta-link" user-select="true">🔗 查看原文</text>
+            <view class="recent-arrow">›</view>
+          </view>
+        </view>
+
+        <view class="home-bottom-pad"></view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- ========== 有消息模式：聊天布局 ========== -->
+  <block wx:else>
+    <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation enable-flex>
+
+      <!-- 消息列表 -->
+      <view wx:for="{{messages}}" wx:key="id" id="msg{{item.id}}" class="msg-item {{item.role}}">
+        <view wx:if="{{item.role === 'ai'}}" class="msg-avatar">🤖</view>
+        <view class="bubble {{item.role}}">
+          <block wx:if="{{item.role === 'ai' && item.html}}">
+            <rich-text nodes="{{item.html}}" class="bubble-rich-text"></rich-text>
+          </block>
+          <text wx:else class="bubble-text" user-select="true">{{item.text}}</text>
+
+          <!-- AI 消息带出处 -->
+          <view wx:if="{{item.role === 'ai' && item.sources.length}}" class="sources">
+            <view class="sources-title">引用出处（点击可复制链接或拨打）</view>
+            <view wx:for="{{item.sources}}" wx:for-item="src" wx:key="title" class="source-item" bindtap="onSourceTap" data-src="{{src}}">
+              <view class="source-main">
+                <text class="source-title" user-select="true">{{src.title}}</text>
+                <text wx:if="{{src.doc_no}}" class="source-docno" user-select="true">{{src.doc_no}}</text>
+              </view>
+              <view class="source-meta">
+                <text wx:if="{{src.source}}" class="meta-source" user-select="true">{{src.source}}</text>
+                <text wx:if="{{src.phone}}" class="meta-phone" user-select="true">📞 {{src.phone}}</text>
+                <text wx:if="{{src.source_url}}" class="meta-link" user-select="true">🔗 查看原文</text>
+              </view>
             </view>
+          </view>
+
+          <!-- 智能追问推荐 -->
+          <view wx:if="{{item.role === 'ai' && item.followUp && item.followUp.length}}" class="follow-up">
+            <view class="follow-up-title">💡 你可能还想问</view>
+            <view class="follow-up-list">
+              <view wx:for="{{item.followUp}}" wx:key="*this" wx:for-item="fu" class="follow-up-item" catchtap="onFollowUpTap" data-q="{{fu}}">
+                {{fu}}
+              </view>
+            </view>
+          </view>
+
+          <!-- 语音播报按钮 -->
+          <view wx:if="{{item.role === 'ai'}}" class="voice-play-btn {{playingId === item.id ? 'playing' : ''}}" catchtap="onPlayVoice" data-id="{{item.id}}" data-text="{{item.text}}">
+            <text>{{playingId === item.id ? '⏸ 停止播报' : '🔊 语音播报'}}</text>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- 加载态 -->
-    <view wx:if="{{loading}}" class="msg-item ai">
-      <view class="bubble ai loading">
-        <text class="loading-text">正在思考</text>
-        <view class="dots">
-          <view class="dot"></view>
-          <view class="dot"></view>
-          <view class="dot"></view>
+      <!-- 加载态 -->
+      <view wx:if="{{loading}}" class="msg-item ai">
+        <view class="msg-avatar">🤖</view>
+        <view class="bubble ai loading">
+          <text class="loading-text">正在思考</text>
+          <view class="dots">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
         </view>
       </view>
-    </view>
 
-    <!-- 底部空垫，防最后一条贴边 -->
-    <view class="msg-bottom-pad"></view>
-  </scroll-view>
+      <view class="msg-bottom-pad"></view>
+    </scroll-view>
+  </block>
 
-  <!-- 快捷问题 -->
-  <scroll-view class="quick-questions" scroll-x>
+  <!-- 快捷问题（有消息时显示） -->
+  <scroll-view wx:if="{{messages.length}}" class="quick-questions" scroll-x>
     <view wx:for="{{quickQuestions}}" wx:key="*this" class="quick-item" bindtap="onQuickTap" data-q="{{item}}">
       {{item}}
     </view>
@@ -48,8 +135,20 @@
 
   <!-- 输入区 -->
   <view class="input-bar">
-    <view wx:if="{{messages.length}}" class="action-btn" bindtap="onNewChat">🔄新对话</view>
-    <input class="input" value="{{inputValue}}" placeholder="输入你的问题…" confirm-type="send" adjust-position bindinput="onInput" bindconfirm="onSend" bindfocus="onInputFocus" />
-    <button class="send-btn {{loading ? 'disabled' : ''}}" bindtap="onSend" disabled="{{loading}}">发送</button>
+    <view wx:if="{{messages.length}}" class="action-btn" bindtap="onNewChat">🔄</view>
+    <view class="voice-btn {{isRecording ? 'recording' : ''}}" bindtap="onVoiceTap">
+      <text>{{isRecording ? '⏹' : '🎤'}}</text>
+    </view>
+    <input wx:if="{{!isRecording}}" class="input" value="{{inputValue}}" placeholder="输入你的问题…" confirm-type="send" adjust-position bindinput="onInput" bindconfirm="onSend" bindfocus="onInputFocus" />
+    <view wx:else class="recording-indicator">
+      <view class="recording-wave">
+        <view class="wave-bar"></view>
+        <view class="wave-bar"></view>
+        <view class="wave-bar"></view>
+      </view>
+      <text class="recording-time">{{recordingTime}}s</text>
+      <text class="recording-tip">正在录音，点击停止</text>
+    </view>
+    <button wx:if="{{!isRecording}}" class="send-btn {{loading ? 'disabled' : ''}}" bindtap="onSend" disabled="{{loading}}">发送</button>
   </view>
 </view>

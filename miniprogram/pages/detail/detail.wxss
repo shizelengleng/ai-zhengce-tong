@@ -1,49 +1,79 @@
-/* detail.wxss —— 详情页样式 */
+/* detail.wxss —— 详情页样式（融合版：独立卡片分区 + 双按钮） */
+
 .container {
   padding: 24rpx;
 }
 
+/* 通用卡片 */
 .detail-card {
   background: #fff;
   border-radius: 16rpx;
-  padding: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+  padding: 28rpx;
+  margin-bottom: 16rpx;
+  border: 1rpx solid #E8E8E8;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03);
+}
+
+/* 标题卡片 */
+.title-card {
+  background: linear-gradient(135deg, #F5F9FF 0%, #fff 100%);
+  border-left: 5rpx solid #1E88E5;
+}
+.title-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.favorite-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #F0F2F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.favorite-btn.favorited {
+  background: #FFF7E6;
+  transform: scale(1.1);
 }
 .detail-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: #1A1A1A;
   line-height: 1.4;
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
 }
 .detail-tags {
-  margin-bottom: 32rpx;
-}
-.detail-tags .tag {
-  margin-bottom: 8rpx;
+  margin-bottom: 0;
 }
 
-.detail-section {
-  margin-bottom: 32rpx;
-  padding-bottom: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-}
-.detail-section:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
+/* 分区标签 */
 .section-label {
   font-size: 26rpx;
-  color: #999;
-  margin-bottom: 12rpx;
+  color: #888;
+  margin-bottom: 14rpx;
+  font-weight: 500;
 }
 .section-body {
-  font-size: 30rpx;
+  font-size: 29rpx;
   color: #333;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
+/* 可点击卡片 */
+.clickable-card {
+  position: relative;
+}
+.clickable-card:active {
+  background: #F8F9FA;
+}
+
+/* 官方出处行 */
 .source-row {
   display: flex;
   justify-content: space-between;
@@ -51,43 +81,95 @@
 }
 .source-name {
   color: #333;
+  flex: 1;
+  font-size: 28rpx;
 }
 .source-link {
-  color: #52C41A;
-  font-size: 26rpx;
-}
-
-.phone-row .phone-number {
-  color: #FA8C16;
-  font-size: 32rpx;
+  color: #1E88E5;
+  font-size: 25rpx;
   font-weight: 500;
+  margin-left: 16rpx;
+  flex-shrink: 0;
 }
 
-/* 办理方式（橙色高亮，重要信息） */
+/* 咨询电话行 */
+.phone-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.phone-number {
+  color: #FB8C00;
+  font-size: 34rpx;
+  font-weight: 600;
+  flex: 1;
+}
+.phone-action {
+  color: #FB8C00;
+  font-size: 25rpx;
+  font-weight: 500;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+/* 办理方式（橙色高亮卡片） */
 .venue-box {
-  background: #FFF7E6;
-  border: 1rpx solid #FFE7BA;
+  background: linear-gradient(135deg, #FFF7E6 0%, #FFEED4 100%);
+  border: 1rpx solid #FFE0B2;
   border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  padding: 22rpx 24rpx;
 }
 .venue-text {
-  font-size: 30rpx;
-  color: #D46B08;
+  font-size: 29rpx;
+  color: #E65100;
   font-weight: 500;
   line-height: 1.7;
 }
 
-/* 核实信息（灰色小字） */
-.remark-section {
-  margin-top: 8rpx;
+/* 核实信息（灰色弱化） */
+.remark-card {
+  background: #FAFAFA;
+  border: 1rpx solid #F0F0F0;
 }
-.remark-section .section-label {
-  color: #bbb;
+.remark-card .section-label {
+  color: #BBB;
 }
 .remark-body {
-  font-size: 24rpx;
+  font-size: 25rpx;
   color: #999;
-  line-height: 1.6;
+  line-height: 1.65;
+}
+
+/* 底部操作按钮 */
+.detail-actions {
+  margin-top: 12rpx;
+  padding-bottom: 20rpx;
+}
+.detail-actions .btn-primary {
+  margin-top: 0;
+}
+.detail-actions .btn-secondary {
+  margin-top: 16rpx;
+}
+.detail-btn-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+.detail-btn-half {
+  flex: 1;
+  margin-top: 0 !important;
+  font-size: 26rpx !important;
+  padding: 18rpx 0 !important;
+}
+.detail-btn-half.subscribed {
+  background: #E8F5E9 !important;
+  color: #43A047 !important;
+  border-color: #43A047 !important;
+}
+
+.detail-bottom-pad {
+  height: 40rpx;
 }
 
 /* loading 占位 */
@@ -100,4 +182,55 @@
 .loading-text {
   color: #999;
   font-size: 28rpx;
+}
+
+/* 分享海报 */
+.poster-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: -9999rpx;
+  width: 600px;
+  height: 900px;
+}
+.poster-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+}
+.poster-modal-content {
+  width: 100%;
+  max-width: 560rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.poster-image {
+  width: 100%;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.3);
+}
+.poster-actions {
+  width: 100%;
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.poster-save-btn {
+  width: 100%;
+  margin-top: 0;
+}
+.poster-close {
+  color: rgba(255,255,255,0.7);
+  font-size: 26rpx;
+  margin-top: 20rpx;
+  padding: 10rpx 30rpx;
 }

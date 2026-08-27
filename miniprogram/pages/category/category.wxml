@@ -1,31 +1,94 @@
-<!-- category.wxml —— 政策分类页 -->
+<!-- category.wxml —— 分类页（融合版：搜索 + 分类网格 + 热门TOP5 + 政策列表） -->
+<nav-bar title="政策分类" show-back="{{false}}"></nav-bar>
 <view class="container">
-  <view class="page-title">政策分类</view>
 
-  <!-- loading 占位 -->
-  <view wx:if="{{loading}}" class="loading-box">
-    <view class="loading-text">加载中…</view>
+  <!-- 搜索栏 -->
+  <view class="search-bar category-search">
+    <text class="search-icon">🔍</text>
+    <input class="search-input" placeholder="搜索政策名称、关键词…" placeholder-class="search-placeholder" value="{{searchValue}}" confirm-type="search" bindinput="onSearchInput" />
+    <view wx:if="{{searchValue}}" class="search-clear" bindtap="onSearchClear">✕</view>
   </view>
 
-  <!-- 分类网格 -->
-  <view wx:else class="category-grid">
-    <view wx:for="{{categories}}" wx:key="key" class="category-card {{currentCategory === item.key ? 'active' : ''}}" bindtap="onCategoryTap" data-key="{{item.key}}">
-      <view class="cat-icon">{{item.icon}}</view>
-      <view class="cat-name">{{item.name}}</view>
-      <view class="cat-count">{{item.count}} 条</view>
-    </view>
-  </view>
-
-  <!-- 当前分类下的政策列表 -->
-  <view wx:if="{{currentPolicies.length}}" class="policy-list">
-    <view class="list-title">{{currentCategoryName}} · 政策列表</view>
-    <view wx:for="{{currentPolicies}}" wx:key="_id" class="policy-item" bindtap="onPolicyTap" data-id="{{item._id}}">
-      <view class="policy-title">{{item.title}}</view>
-      <view class="policy-meta">
-        <text class="policy-source">{{item.source}}</text>
+  <!-- loading 骨架屏 -->
+  <view wx:if="{{loading}}" class="skeleton-container">
+    <!-- 搜索栏骨架 -->
+    <view class="skeleton-search"></view>
+    <!-- 分类网格骨架 -->
+    <view class="skeleton-grid">
+      <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="skeleton-cat-card">
+        <view class="skeleton-circle"></view>
+        <view class="skeleton-line short"></view>
+        <view class="skeleton-line xshort"></view>
       </view>
     </view>
+    <!-- 列表骨架 -->
+    <view class="skeleton-list-title"></view>
+    <view wx:for="{{[1,2,3]}}" wx:key="*this" class="skeleton-list-item">
+      <view class="skeleton-line long"></view>
+      <view class="skeleton-line medium"></view>
+    </view>
   </view>
 
-  <view wx:elif="{{currentCategory}}" class="empty">该分类暂无政策</view>
+  <block wx:else>
+    <!-- 分类网格 -->
+    <view class="section-title">
+      政策分类
+      <text class="title-extra">全部 ›</text>
+    </view>
+    <view class="category-grid">
+      <view wx:for="{{categories}}" wx:key="key" class="category-card {{currentCategory === item.key ? 'active' : ''}}" style="border-color: {{currentCategory === item.key ? item.color : '#E8E8E8'}}; background: {{currentCategory === item.key ? item.color + '0D' : '#fff'}}" bindtap="onCategoryTap" data-key="{{item.key}}">
+        <view class="cat-icon" style="background: {{item.color}}">{{item.icon}}</view>
+        <view class="cat-name">{{item.name}}</view>
+        <view class="cat-count">
+          <text style="color: {{item.color}}">{{item.count}}条</text>
+          <text wx:if="{{item.update}}" class="cat-update">· 本月更新{{item.update}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 热门政策TOP5（未选中分类时显示） -->
+    <view wx:if="{{!currentCategory}}" class="section-title hot-title">
+      🔥 热门政策 TOP5
+    </view>
+    <view wx:if="{{!currentCategory}}" class="hot-list">
+      <view wx:for="{{hotPolicies}}" wx:key="rank" class="hot-item" bindtap="onHotPolicyTap" data-title="{{item.title}}">
+        <view class="hot-rank rank-{{item.rank <= 3 ? 'top' : 'normal'}}">{{item.rank}}</view>
+        <view class="hot-info">
+          <view class="hot-policy-title">{{item.title}}</view>
+          <view class="hot-policy-meta">
+            <text class="hot-source">{{item.source}}</text>
+            <text class="hot-views">👁 {{item.views}}</text>
+          </view>
+        </view>
+        <view class="hot-arrow">›</view>
+      </view>
+    </view>
+
+    <!-- 当前分类下的政策列表 -->
+    <view wx:if="{{currentPolicies.length}}" class="policy-list">
+      <view class="section-title">
+        {{currentCategoryName}} · 政策列表
+        <text class="title-extra">共{{currentPolicies.length}}条</text>
+      </view>
+      <view wx:for="{{currentPolicies}}" wx:key="_id" class="policy-item" bindtap="onPolicyTap" data-id="{{item._id}}">
+        <view class="policy-title">{{item.title}}</view>
+        <view class="policy-meta">
+          <text class="policy-source">{{item.source}}</text>
+          <text wx:if="{{item.doc_no}}" class="policy-docno">{{item.doc_no}}</text>
+        </view>
+        <view class="policy-tag">有效</view>
+      </view>
+    </view>
+
+    <!-- 搜索无结果 -->
+    <view wx:elif="{{currentCategory === 'search'}}" class="empty">
+      <view class="empty-icon">🔍</view>
+      <view>未找到相关政策，换个关键词试试</view>
+    </view>
+
+    <!-- 未选中分类 -->
+    <view wx:elif="{{!currentCategory}}" class="empty-tip">
+      <text>↑ 点击上方分类查看政策列表</text>
+    </view>
+  </block>
 </view>

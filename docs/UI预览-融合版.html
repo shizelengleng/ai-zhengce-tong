@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI政策通 - UI改造预览（融合版）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .page-header {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 40px;
+  }
+  .page-header h1 { font-size: 28px; margin-bottom: 8px; }
+  .page-header p { color: #888; font-size: 14px; }
+
+  .phones-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .phone-label {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 20px;
+    border-radius: 20px;
+  }
+
+  .phone {
+    width: 375px;
+    height: 750px;
+    background: #F5F7FA;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    border: 8px solid #2a2a3e;
+  }
+
+  /* 状态栏 */
+  .status-bar {
+    height: 44px;
+    background: #1565C0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .status-bar .right { display: flex; gap: 6px; align-items: center; }
+
+  /* 导航栏 */
+  .nav-bar {
+    height: 44px;
+    background: linear-gradient(180deg, #1565C0 0%, #1E88E5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    position: relative;
+  }
+  .nav-bar .nav-left {
+    position: absolute;
+    left: 16px;
+    font-size: 20px;
+  }
+  .nav-bar .nav-right {
+    position: absolute;
+    right: 16px;
+    font-size: 18px;
+  }
+
+  /* 内容区 */
+  .content {
+    height: calc(100% - 88px - 50px);
+    overflow-y: auto;
+  }
+  .content.no-tab { height: calc(100% - 88px); }
+
+  /* 蓝色Hero区 */
+  .blue-hero {
+    background: linear-gradient(180deg, #1565C0 0%, #1E88E5 100%);
+    padding: 16px 16px 24px;
+  }
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stats-card {
+    flex: 1;
+    background: rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 14px 8px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+  .stats-card .num { font-size: 22px; font-weight: bold; color: #fff; }
+  .stats-card .label { font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+
+  /* 搜索栏 */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.95);
+    border-radius: 999px;
+    padding: 10px 16px;
+  }
+  .search-bar .icon { color: #999; margin-right: 8px; font-size: 14px; }
+  .search-bar .text { color: #999; font-size: 13px; }
+
+  .search-bar-plain {
+    display: flex;
+    align-items: center;
+    background: #F0F2F5;
+    border-radius: 999px;
+    padding: 10px 16px;
+    margin: 16px;
+  }
+
+  /* 首页内容 */
+  .home-content { padding: 16px; }
+
+  /* 欢迎区 */
+  .welcome { text-align: center; padding: 12px 0 24px; }
+  .welcome-avatar {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1565C0, #42A5F5);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    font-size: 32px;
+    box-shadow: 0 6px 16px rgba(30,136,229,0.3);
+  }
+  .welcome-title { font-size: 22px; font-weight: bold; color: #1A1A1A; margin-bottom: 6px; }
+  .welcome-desc { font-size: 13px; color: #888; line-height: 1.6; padding: 0 20px; }
+
+  /* 区块标题 */
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1A1A1A;
+    margin: 8px 0 12px;
+  }
+  .section-title::before {
+    content: '';
+    width: 3px; height: 16px;
+    background: linear-gradient(180deg, #1565C0, #1E88E5);
+    border-radius: 2px;
+    margin-right: 8px;
+  }
+  .section-title .extra { margin-left: auto; font-size: 12px; color: #888; font-weight: normal; }
+
+  /* 热门问题网格 */
+  .hot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .hot-card {
+    width: 48%;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 14px;
+    margin-bottom: 10px;
+    border: 1px solid #E8E8E8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    position: relative;
+  }
+  .hot-card .icon { font-size: 24px; margin-bottom: 8px; }
+  .hot-card .text { font-size: 13px; color: #1A1A1A; font-weight: 500; line-height: 1.4; padding-right: 16px; }
+  .hot-card .arrow { position: absolute; right: 10px; bottom: 10px; font-size: 18px; color: #1E88E5; font-weight: bold; }
+
+  /* 最近问答列表 */
+  .recent-list {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #E8E8E8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .recent-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .recent-item:last-child { border-bottom: none; }
+  .recent-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .recent-info { flex: 1; min-width: 0; }
+  .recent-q { font-size: 14px; color: #333; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recent-time { font-size: 11px; color: #BBB; }
+  .recent-arrow { font-size: 20px; color: #CCC; margin-left: 8px; }
+
+  /* 分类网格 */
+  .category-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+  .cat-card {
+    width: 48%;
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 14px;
+    margin-bottom: 12px;
+    text-align: center;
+    border: 2px solid #E8E8E8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .cat-card.active { border-color: #1565C0; background: rgba(21,101,192,0.05); }
+  .cat-icon {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    margin: 0 auto 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .cat-name { font-size: 15px; font-weight: 600; color: #1A1A1A; margin-bottom: 4px; }
+  .cat-count { font-size: 11px; color: #999; }
+
+  /* 热门TOP5 */
+  .hot-list {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #E8E8E8;
+    margin: 0 16px 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .hot-list-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .hot-list-item:last-child { border-bottom: none; }
+  .hot-rank {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .hot-rank.top { background: linear-gradient(135deg, #1565C0, #1E88E5); color: #fff; }
+  .hot-rank.normal { background: #F0F2F5; color: #999; }
+  .hot-list-info { flex: 1; min-width: 0; }
+  .hot-list-title { font-size: 14px; color: #1A1A1A; font-weight: 500; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hot-list-meta { font-size: 11px; color: #999; display: flex; gap: 12px; }
+
+  /* 政策列表 */
+  .policy-list { padding: 0 16px; }
+  .policy-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 16px 16px 20px;
+    margin-bottom: 10px;
+    border-left: 4px solid #1E88E5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    position: relative;
+  }
+  .policy-title { font-size: 15px; font-weight: 600; color: #1A1A1A; margin-bottom: 8px; padding-right: 50px; line-height: 1.4; }
+  .policy-meta { font-size: 11px; color: #999; }
+  .policy-tag {
+    position: absolute;
+    right: 12px; top: 16px;
+    font-size: 10px;
+    color: #43A047;
+    background: #E8F5E9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  /* 详情页卡片 */
+  .detail-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 0 16px 12px;
+    border: 1px solid #E8E8E8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .detail-card.title-card {
+    background: linear-gradient(135deg, #F5F9FF, #fff);
+    border-left: 4px solid #1E88E5;
+  }
+  .detail-title { font-size: 20px; font-weight: bold; color: #1A1A1A; line-height: 1.4; margin-bottom: 12px; }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .detail-tag { font-size: 11px; padding: 3px 10px; border-radius: 999px; }
+  .detail-tag.blue { background: #E3F2FD; color: #1565C0; }
+  .detail-tag.gray { background: #F0F0F0; color: #666; }
+  .detail-label { font-size: 13px; color: #888; margin-bottom: 10px; font-weight: 500; }
+  .detail-body { font-size: 15px; color: #333; line-height: 1.75; }
+  .venue-box {
+    background: linear-gradient(135deg, #FFF7E6, #FFEED4);
+    border: 1px solid #FFE0B2;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .venue-text { font-size: 15px; color: #E65100; font-weight: 500; line-height: 1.7; }
+  .clickable-row { display: flex; justify-content: space-between; align-items: center; }
+  .clickable-row .name { font-size: 15px; color: #333; flex: 1; }
+  .clickable-row .action { font-size: 13px; font-weight: 500; margin-left: 12px; }
+  .phone-number { font-size: 20px; color: #FB8C00; font-weight: 600; }
+
+  .detail-actions { padding: 8px 16px 20px; }
+  .btn-primary-full {
+    width: 100%;
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(30,136,229,0.25);
+    margin-bottom: 12px;
+  }
+  .btn-secondary-full {
+    width: 100%;
+    background: #fff;
+    color: #1565C0;
+    border: 1px solid #1565C0;
+    border-radius: 999px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  /* 我的页 */
+  .user-card {
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
+    border-radius: 18px;
+    padding: 24px 20px;
+    margin: 16px;
+    box-shadow: 0 6px 16px rgba(30,136,229,0.25);
+  }
+  .user-top { display: flex; align-items: center; margin-bottom: 18px; }
+  .user-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    margin-right: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .user-name { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .user-desc { color: rgba(255,255,255,0.8); font-size: 12px; }
+  .user-actions { display: flex; gap: 12px; }
+  .user-action-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 12px;
+    padding: 10px 0;
+    border-radius: 999px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .stats-white {
+    display: flex;
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 0;
+    margin: 0 16px 16px;
+    border: 1px solid #E8E8E8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .stats-white-item {
+    flex: 1;
+    text-align: center;
+    border-right: 1px solid #F0F0F0;
+  }
+  .stats-white-item:last-child { border-right: none; }
+  .stats-white-icon { font-size: 22px; margin-bottom: 6px; }
+  .stats-white-num { font-size: 22px; font-weight: bold; color: #1A1A1A; margin-bottom: 2px; }
+  .stats-white-label { font-size: 11px; color: #999; }
+
+  .menu-section { padding: 0 16px; }
+  .menu-list {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #E8E8E8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: #F0F4F8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-right: 14px;
+  }
+  .menu-info { flex: 1; }
+  .menu-name { font-size: 15px; color: #1A1A1A; font-weight: 500; margin-bottom: 2px; }
+  .menu-desc { font-size: 11px; color: #999; }
+  .menu-arrow { font-size: 20px; color: #CCC; }
+
+  /* 聊天消息 */
+  .chat-content { padding: 16px; height: calc(100% - 88px - 50px - 40px); overflow-y: auto; }
+  .msg-item { display: flex; margin-bottom: 16px; align-items: flex-start; }
+  .msg-item.user { justify-content: flex-end; }
+  .msg-avatar-chat {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .bubble-chat {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .bubble-chat.user {
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .bubble-chat.ai {
+    background: #fff;
+    color: #333;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #E8E8E8;
+    border-left: 3px solid #1E88E5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .quick-bar {
+    white-space: nowrap;
+    padding: 8px 16px;
+    background: #fff;
+    border-top: 1px solid #F0F0F0;
+    overflow-x: auto;
+  }
+  .quick-item-chat {
+    display: inline-block;
+    background: #fff;
+    color: #1565C0;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-right: 8px;
+    border: 1px solid #BBDEFB;
+  }
+
+  .input-bar-chat {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    background: #fff;
+    border-top: 1px solid #EEE;
+    height: 56px;
+  }
+  .input-action {
+    width: 36px; height: 36px;
+    background: #F0F2F5;
+    color: #1565C0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    margin-right: 8px;
+  }
+  .input-field {
+    flex: 1;
+    background: #F0F2F5;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #999;
+  }
+  .send-btn-chat {
+    margin-left: 10px;
+    background: linear-gradient(135deg, #1565C0, #1E88E5);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(30,136,229,0.25);
+  }
+
+  /* tabBar */
+  .tab-bar {
+    height: 50px;
+    background: #fff;
+    border-top: 1px solid #EEE;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 10px;
+    color: #999;
+  }
+  .tab-item.active { color: #1E88E5; }
+  .tab-item .icon { font-size: 20px; margin-bottom: 2px; }
+
+  .section-padding { padding: 0 16px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>AI政策通 · UI改造预览（融合版）</h1>
+  <p>精致商务风 × 数据卡片风 | 4个页面完整效果</p>
+</div>
+
+<div class="phones-container">
+
+  <!-- ========== 页面1：问答页（首页模式） ========== -->
+  <div class="phone-wrapper">
+    <div class="phone-label">问答页 · 首页模式</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">📶 📡 🔋</span>
+      </div>
+      <div class="nav-bar">
+        <span class="nav-left">‹</span>
+        AI政策通
+        <span class="nav-right">🔍</span>
+      </div>
+      <div class="content no-tab">
+        <div class="blue-hero">
+          <div class="stats-row">
+            <div class="stats-card"><div class="num">1,286</div><div class="label">累计问答</div></div>
+            <div class="stats-card"><div class="num">358</div><div class="label">政策库</div></div>
+            <div class="stats-card"><div class="num">98%</div><div class="label">好评率</div></div>
+          </div>
+          <div class="search-bar">
+            <span class="icon">🔍</span>
+            <span class="text">搜索政策或输入问题…</span>
+          </div>
+        </div>
+        <div class="home-content">
+          <div class="welcome">
+            <div class="welcome-avatar">💬</div>
+            <div class="welcome-title">您好，我是AI政策通</div>
+            <div class="welcome-desc">天河区社区便民政策问答助手，有问题尽管问我~</div>
+          </div>
+          <div class="section-title">热门问题</div>
+          <div class="hot-grid">
+            <div class="hot-card"><div class="icon">🎒</div><div class="text">小学入学报名流程</div><div class="arrow">›</div></div>
+            <div class="hot-card"><div class="icon">💊</div><div class="text">居民医保报销比例</div><div class="arrow">›</div></div>
+            <div class="hot-card"><div class="icon">👴</div><div class="text">高龄补贴申请条件</div><div class="arrow">›</div></div>
+            <div class="hot-card"><div class="icon">🏠</div><div class="text">公租房申请指南</div><div class="arrow">›</div></div>
+          </div>
+          <div class="section-title">最近问答 <span class="extra">查看全部 ›</span></div>
+          <div class="recent-list">
+            <div class="recent-item">
+              <div class="recent-avatar">Q</div>
+              <div class="recent-info">
+                <div class="recent-q">天河区小学报名需要什么材料？</div>
+                <div class="recent-time">2小时前</div>
+              </div>
+              <div class="recent-arrow">›</div>
+            </div>
+            <div class="recent-item">
+              <div class="recent-avatar">Q</div>
+              <div class="recent-info">
+                <div class="recent-q">居民医保门诊报销比例是多少？</div>
+                <div class="recent-time">昨天</div>
+              </div>
+              <div class="recent-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="input-bar-chat">
+        <div class="input-field">输入你的问题…</div>
+        <div class="send-btn-chat">发送</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 页面2：问答页（聊天模式） ========== -->
+  <div class="phone-wrapper">
+    <div class="phone-label">问答页 · 聊天模式</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">📶 📡 🔋</span>
+      </div>
+      <div class="nav-bar">
+        <span class="nav-left">‹</span>
+        AI政策通
+        <span class="nav-right">🔍</span>
+      </div>
+      <div class="chat-content">
+        <div class="msg-item user">
+          <div class="bubble-chat user">小学入学报名需要什么材料？</div>
+        </div>
+        <div class="msg-item ai">
+          <div class="msg-avatar-chat">🤖</div>
+          <div class="bubble-chat ai">
+            您好！天河区小学入学报名需要以下材料：<br><br>
+            1. 户口簿原件及复印件<br>
+            2. 儿童出生医学证明<br>
+            3. 预防接种证<br>
+            4. 房产证或租房合同<br>
+            5. 家长身份证<br><br>
+            具体要求以当年招生政策为准。
+            <div style="margin-top:10px;padding-top:8px;border-top:1px solid #EEE;font-size:11px;color:#999;">引用出处</div>
+            <div style="margin-top:6px;background:#F5F9FF;border:1px solid #D6E4F5;border-radius:8px;padding:8px 10px;font-size:11px;color:#333;">
+              <div style="font-weight:500;">天河区2024年小学招生方案</div>
+              <div style="color:#666;margin-top:2px;">来源：天河区教育局 · 📞 020-3862...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="quick-bar">
+        <span class="quick-item-chat">港澳子女入学</span>
+        <span class="quick-item-chat">医保参保</span>
+        <span class="quick-item-chat">公租房申请</span>
+      </div>
+      <div class="input-bar-chat">
+        <div class="input-action">🔄</div>
+        <div class="input-field">输入你的问题…</div>
+        <div class="send-btn-chat">发送</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 页面3：分类页 ========== -->
+  <div class="phone-wrapper">
+    <div class="phone-label">分类页</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">📶 📡 🔋</span>
+      </div>
+      <div class="nav-bar">
+        <span class="nav-left">‹</span>
+        政策分类
+      </div>
+      <div class="content">
+        <div class="search-bar-plain">
+          <span class="icon">🔍</span>
+          <span class="text">搜索政策名称、关键词…</span>
+        </div>
+        <div class="section-padding">
+          <div class="section-title">政策分类 <span class="extra">全部 ›</span></div>
+        </div>
+        <div class="category-grid">
+          <div class="cat-card active">
+            <div class="cat-icon" style="background:#1565C0;">🎒</div>
+            <div class="cat-name">教育入学</div>
+            <div class="cat-count" style="color:#1565C0;">28条 · 更新3</div>
+          </div>
+          <div class="cat-card">
+            <div class="cat-icon" style="background:#43A047;">💊</div>
+            <div class="cat-name">医疗保障</div>
+            <div class="cat-count">15条 · 更新2</div>
+          </div>
+          <div class="cat-card">
+            <div class="cat-icon" style="background:#FB8C00;">💼</div>
+            <div class="cat-name">就业创业</div>
+            <div class="cat-count">12条 · 更新4</div>
+          </div>
+          <div class="cat-card">
+            <div class="cat-icon" style="background:#8E24AA;">💳</div>
+            <div class="cat-name">社保补贴</div>
+            <div class="cat-count">18条 · 更新2</div>
+          </div>
+        </div>
+        <div class="section-padding">
+          <div class="section-title" style="margin-top:16px;">🔥 热门政策 TOP5</div>
+        </div>
+        <div class="hot-list">
+          <div class="hot-list-item">
+            <div class="hot-rank top">1</div>
+            <div class="hot-list-info">
+              <div class="hot-list-title">天河区2024年小学招生工作方案</div>
+              <div class="hot-list-meta"><span>天河区教育局</span><span>👁 1.2k</span></div>
+            </div>
+          </div>
+          <div class="hot-list-item">
+            <div class="hot-rank top">2</div>
+            <div class="hot-list-info">
+              <div class="hot-list-title">广州市居民基本医疗保险参保指南</div>
+              <div class="hot-list-meta"><span>天河区医保局</span><span>👁 986</span></div>
+            </div>
+          </div>
+          <div class="hot-list-item">
+            <div class="hot-rank top">3</div>
+            <div class="hot-list-info">
+              <div class="hot-list-title">天河区高龄老人津贴发放管理办法</div>
+              <div class="hot-list-meta"><span>天河区民政局</span><span>👁 756</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="section-padding">
+          <div class="section-title" style="margin-top:16px;">教育入学 · 政策列表 <span class="extra">共12条</span></div>
+        </div>
+        <div class="policy-list">
+          <div class="policy-item">
+            <div class="policy-tag">有效</div>
+            <div class="policy-title">天河区2024年小学招生工作方案</div>
+            <div class="policy-meta">来源：天河区教育局 · 天教〔2024〕12号</div>
+          </div>
+          <div class="policy-item">
+            <div class="policy-tag">有效</div>
+            <div class="policy-title">天河区港澳居民子女入学实施办法</div>
+            <div class="policy-meta">来源：天河区教育局</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="icon">💬</div>问答</div>
+        <div class="tab-item active"><div class="icon">📂</div>分类</div>
+        <div class="tab-item"><div class="icon">👤</div>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 页面4：详情页 ========== -->
+  <div class="phone-wrapper">
+    <div class="phone-label">详情页</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">📶 📡 🔋</span>
+      </div>
+      <div class="nav-bar">
+        <span class="nav-left">‹</span>
+        政策详情
+        <span class="nav-right">↗</span>
+      </div>
+      <div class="content no-tab">
+        <div style="padding-top:16px;">
+          <div class="detail-card title-card">
+            <div class="detail-title">天河区2024年小学招生工作方案</div>
+            <div class="detail-tags">
+              <span class="detail-tag blue">教育入学</span>
+              <span class="detail-tag gray">招生</span>
+              <span class="detail-tag gray">小学</span>
+            </div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">📖 政策解读</div>
+            <div class="detail-body">本方案适用于天河区户籍适龄儿童及符合条件的非户籍适龄儿童的小学入学招生工作。招生对象为2018年8月31日（含）前出生的适龄儿童。</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">📍 办理方式 / 地点</div>
+            <div class="venue-box">
+              <div class="venue-text">线上：粤省事小程序 → 入学报名<br>线下：天河区政务服务中心（天河区软件路13号）</div>
+            </div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">📄 官方出处</div>
+            <div class="clickable-row">
+              <span class="name">天河区教育局</span>
+              <span class="action" style="color:#1E88E5;">查看原文 ›</span>
+            </div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">📞 咨询电话</div>
+            <div class="clickable-row">
+              <span class="phone-number">020-3862XXXX</span>
+              <span class="action" style="color:#FB8C00;">点击拨打 ›</span>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn-primary-full">查看政策原文</button>
+            <button class="btn-secondary-full">💬 在线咨询AI</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 页面5：我的页 ========== -->
+  <div class="phone-wrapper">
+    <div class="phone-label">我的页</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">📶 📡 🔋</span>
+      </div>
+      <div class="nav-bar">
+        我的
+      </div>
+      <div class="content">
+        <div class="user-card">
+          <div class="user-top">
+            <div class="user-avatar">💬</div>
+            <div>
+              <div class="user-name">AI政策通</div>
+              <div class="user-desc">天河区社区便民政策问答助手</div>
+            </div>
+          </div>
+          <div class="user-actions">
+            <div class="user-action-btn">编辑资料</div>
+            <div class="user-action-btn">设置</div>
+          </div>
+        </div>
+        <div class="stats-white">
+          <div class="stats-white-item">
+            <div class="stats-white-icon">💬</div>
+            <div class="stats-white-num">12</div>
+            <div class="stats-white-label">问答次数</div>
+          </div>
+          <div class="stats-white-item">
+            <div class="stats-white-icon">⭐</div>
+            <div class="stats-white-num">0</div>
+            <div class="stats-white-label">收藏政策</div>
+          </div>
+          <div class="stats-white-item">
+            <div class="stats-white-icon">📂</div>
+            <div class="stats-white-num">8</div>
+            <div class="stats-white-label">浏览分类</div>
+          </div>
+        </div>
+        <div class="menu-section">
+          <div class="section-title">问答历史（12条） <span class="extra">展开 ▼</span></div>
+        </div>
+        <div class="menu-section">
+          <div class="section-title">功能菜单</div>
+          <div class="menu-list">
+            <div class="menu-item">
+              <div class="menu-icon">⭐</div>
+              <div class="menu-info">
+                <div class="menu-name">我的收藏</div>
+                <div class="menu-desc">查看收藏的政策</div>
+              </div>
+              <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item">
+              <div class="menu-icon">📋</div>
+              <div class="menu-info">
+                <div class="menu-name">意见反馈</div>
+                <div class="menu-desc">告诉我们您的建议</div>
+              </div>
+              <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item">
+              <div class="menu-icon">ℹ️</div>
+              <div class="menu-info">
+                <div class="menu-name">关于我们</div>
+                <div class="menu-desc">AI政策通 v0.2.0</div>
+              </div>
+              <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item">
+              <div class="menu-icon">📞</div>
+              <div class="menu-info">
+                <div class="menu-name">联系客服</div>
+                <div class="menu-desc">020-12345</div>
+              </div>
+              <div class="menu-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="icon">💬</div>问答</div>
+        <div class="tab-item"><div class="icon">📂</div>分类</div>
+        <div class="tab-item active"><div class="icon">👤</div>我的</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

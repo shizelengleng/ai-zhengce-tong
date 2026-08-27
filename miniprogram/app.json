@@ -6,17 +6,18 @@
     "pages/mine/mine"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#3A7AFE",
-    "navigationBarTitleText": "AI政策通",
+    "navigationStyle": "custom",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F6FA",
-    "backgroundTextStyle": "dark"
+    "backgroundColor": "#F5F7FA",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
   },
   "tabBar": {
+    "custom": true,
     "color": "#999999",
-    "selectedColor": "#3A7AFE",
+    "selectedColor": "#1E88E5",
     "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/chat/chat",

@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "AI政策通",
-  "usingComponents": {}
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/nav-bar"
+  }
 }

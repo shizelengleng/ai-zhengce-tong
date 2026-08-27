@@ -1,4 +1,6 @@
-<!-- detail.wxml —— 政策详情页（补办理方式+核实信息+loading态） -->
+<!-- detail.wxml —— 政策详情页（融合版：独立卡片分区 + 双按钮） -->
+<nav-bar title="政策详情" right-icon="↗" bind:righttap="onShareTap"></nav-bar>
+
 <!-- loading 占位 -->
 <view wx:if="{{loading}}" class="container">
   <view class="loading-box">
@@ -8,53 +10,92 @@
 
 <!-- 详情内容 -->
 <view wx:elif="{{policy}}" class="container">
-  <view class="detail-card">
-    <view class="detail-title" user-select="true">{{policy.title}}</view>
 
+  <!-- 标题卡片 -->
+  <view class="detail-card title-card">
+    <view class="title-card-header">
+      <view class="detail-title" user-select="true">{{policy.title}}</view>
+      <view class="favorite-btn {{isFavorited ? 'favorited' : ''}}" bindtap="onToggleFavorite">
+        <text>{{isFavorited ? '⭐' : '☆'}}</text>
+      </view>
+    </view>
     <view class="detail-tags">
       <text class="tag">{{categoryName}}</text>
       <text wx:for="{{policy.keywords}}" wx:key="*this" class="tag tag-keyword">{{item}}</text>
     </view>
+  </view>
 
-    <view class="detail-section">
-      <view class="section-label">政策解读</view>
-      <text class="section-body" user-select="true">{{policy.summary}}</text>
-    </view>
+  <!-- 政策解读卡片 -->
+  <view class="detail-card">
+    <view class="section-label">📖 政策解读</view>
+    <text class="section-body" user-select="true">{{policy.summary}}</text>
+  </view>
 
-    <!-- 办理方式/地点（橙色高亮，重要信息） -->
-    <view wx:if="{{policy.venue}}" class="detail-section">
-      <view class="section-label">办理方式 / 地点</view>
-      <view class="venue-box">
-        <text class="venue-text" user-select="true">{{policy.venue}}</text>
-      </view>
-    </view>
-
-    <view class="detail-section">
-      <view class="section-label">官方出处</view>
-      <view class="section-body source-row" bindtap="onSourceTap">
-        <text class="source-name" user-select="true">{{policy.source}}</text>
-        <text class="source-link">查看原文 ></text>
-      </view>
-    </view>
-
-    <view class="detail-section">
-      <view class="section-label">咨询电话</view>
-      <view class="section-body phone-row" bindtap="onPhoneTap">
-        <text class="phone-number" user-select="true">📞 {{policy.phone}}</text>
-      </view>
-    </view>
-
-    <!-- 核实信息（灰色小字，底部） -->
-    <view wx:if="{{policy.remark}}" class="detail-section remark-section">
-      <view class="section-label">核实信息</view>
-      <text class="section-body remark-body" user-select="true">{{policy.remark}}</text>
+  <!-- 办理方式/地点卡片（橙色高亮） -->
+  <view wx:if="{{policy.venue}}" class="detail-card">
+    <view class="section-label">📍 办理方式 / 地点</view>
+    <view class="venue-box">
+      <text class="venue-text" user-select="true">{{policy.venue}}</text>
     </view>
   </view>
 
-  <button class="btn-primary" bindtap="onSourceTap">查看政策原文</button>
+  <!-- 官方出处卡片 -->
+  <view class="detail-card clickable-card" bindtap="onSourceTap">
+    <view class="section-label">📄 官方出处</view>
+    <view class="section-body source-row">
+      <text class="source-name" user-select="true">{{policy.source}}</text>
+      <text class="source-link">查看原文 ›</text>
+    </view>
+  </view>
+
+  <!-- 咨询电话卡片 -->
+  <view wx:if="{{policy.phone}}" class="detail-card clickable-card" bindtap="onPhoneTap">
+    <view class="section-label">📞 咨询电话</view>
+    <view class="section-body phone-row">
+      <text class="phone-number" user-select="true">{{policy.phone}}</text>
+      <text class="phone-action">点击拨打 ›</text>
+    </view>
+  </view>
+
+  <!-- 核实信息卡片（灰色弱化） -->
+  <view wx:if="{{policy.remark}}" class="detail-card remark-card">
+    <view class="section-label">ℹ️ 核实信息</view>
+    <text class="section-body remark-body" user-select="true">{{policy.remark}}</text>
+  </view>
+
+  <!-- 底部操作按钮 -->
+  <view class="detail-actions">
+    <button class="btn-primary" bindtap="onSourceTap">查看政策原文</button>
+    <view class="detail-btn-row">
+      <button class="btn-secondary detail-btn-half" bindtap="onAskAI">💬 在线咨询</button>
+      <button class="btn-secondary detail-btn-half {{isSubscribed ? 'subscribed' : ''}}" bindtap="onSubscribe">
+        {{isSubscribed ? '✓ 已关注' : '🔔 关注更新'}}
+      </button>
+    </view>
+    <button class="btn-secondary" bindtap="onGeneratePoster">🖼️ 生成分享海报</button>
+  </view>
+
+  <view class="detail-bottom-pad"></view>
+
+  <!-- 海报预览弹窗 -->
+  <view wx:if="{{showPoster}}" class="poster-modal" bindtap="onClosePoster">
+    <view class="poster-modal-content" catchtap="">
+      <image class="poster-image" src="{{posterImage}}" mode="widthFix"></image>
+      <view class="poster-actions">
+        <button class="btn-primary poster-save-btn" bindtap="onSavePoster">保存到相册</button>
+        <view class="poster-close" bindtap="onClosePoster">关闭</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 隐藏的canvas用于绘制海报 -->
+  <canvas canvas-id="posterCanvas" class="poster-canvas"></canvas>
 </view>
 
 <!-- 未找到 -->
 <view wx:else class="container">
-  <view class="empty">未找到该政策</view>
+  <view class="empty">
+    <view class="empty-icon">📭</view>
+    <view>未找到该政策</view>
+  </view>
 </view>

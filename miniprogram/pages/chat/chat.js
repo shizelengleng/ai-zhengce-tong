@@ -1,5 +1,11 @@
-// chat.js —— 聊天页逻辑（滚动时序修复 + 键盘适配 + 出处复制/拨号）
+// chat.js —— 聊天页逻辑（融合版UI + Markdown + 语音 + 智能追问）
 const api = require('../../utils/api.js')
+const markdown = require('../../utils/markdown.js')
+
+// 录音管理器
+const recorderManager = wx.getRecorderManager()
+// 音频播放器
+const innerAudioContext = wx.createInnerAudioContext()
 
 Page({
   data: {
@@ -9,24 +15,137 @@ Page({
     scrollToId: '',        // 滚动定位
     slowToastShown: false,  // 长等待提示是否已显示
     _slowTimer: null,       // 长等待计时器（供清理）
-    quickQuestions: [      // 快捷问题（覆盖 8 分类）
-      '港澳子女怎么入学？',     // 教育入学
-      '医保怎么参保？',         // 医疗保障
-      '公租房怎么申请？',       // 住房保障
-      '创业补贴怎么申请？',     // 就业创业
-      '养老金怎么领？',         // 社保补贴
-      '低保怎么申请？',         // 救助福利
-      '老年食堂怎么吃？',       // 社区养老
-      '居住证怎么办？'          // 政务办事
+    searchValue: '',        // 搜索框内容
+    navTotalHeight: 88,     // 导航栏总高度（状态栏+导航栏），用于fixed布局偏移
+    isRecording: false,      // 是否正在录音
+    recordingTime: 0,        // 录音时长
+    _recordTimer: null,      // 录音计时器
+    playingId: '',            // 正在播放的消息ID
+
+    // 快捷问题（覆盖 8 分类）
+    quickQuestions: [
+      '港澳子女怎么入学？',
+      '医保怎么参保？',
+      '公租房怎么申请？',
+      '创业补贴怎么申请？',
+      '养老金怎么领？',
+      '低保怎么申请？',
+      '老年食堂怎么吃？',
+      '居住证怎么办？'
+    ],
+
+    // 数据看板（静态数据，后续可对接接口）
+    statsData: [
+      { num: '1,286', label: '累计问答' },
+      { num: '358', label: '政策库' },
+      { num: '98%', label: '好评率' }
+    ],
+
+    // 热门问题（2列网格展示）
+    hotQuestions: [
+      { q: '小学入学报名流程', icon: '🎒' },
+      { q: '居民医保报销比例', icon: '💊' },
+      { q: '高龄补贴申请条件', icon: '👴' },
+      { q: '公租房申请指南', icon: '🏠' },
+      { q: '居住证办理流程', icon: '📋' },
+      { q: '创业补贴怎么领', icon: '💼' }
+    ],
+
+    // 最近问答（静态示例，后续可对接历史接口）
+    recentChats: [
+      { id: 'r1', question: '天河区小学报名需要什么材料？', time: '2小时前' },
+      { id: 'r2', question: '居民医保门诊报销比例是多少？', time: '昨天' },
+      { id: 'r3', question: '80岁以上老人有什么补贴？', time: '3天前' }
+    ],
+
+    // 智能追问预设（根据回答内容推荐）
+    followUpPresets: [
+      '需要什么材料？',
+      '办理流程是什么？',
+      '办理地点在哪里？',
+      '有时间限制吗？',
+      '还有什么注意事项？'
     ]
   },
 
+  onLoad() {
+    // 获取导航栏总高度，用于fixed布局偏移
+    const sysInfo = wx.getSystemInfoSync()
+    const statusBarHeight = sysInfo.statusBarHeight || 20
+    let menuButtonInfo = { height: 32, top: statusBarHeight + 6 }
+    try { menuButtonInfo = wx.getMenuButtonBoundingClientRect() } catch (e) {}
+    const navBarHeight = (menuButtonInfo.top - statusBarHeight) * 2 + menuButtonInfo.height
+    this.setData({ navTotalHeight: statusBarHeight + navBarHeight })
+
+    // 初始化录音管理器
+    recorderManager.onStart(() => {
+      console.log('录音开始')
+      this.setData({ isRecording: true, recordingTime: 0 })
+      this._recordTimer = setInterval(() => {
+        this.setData({ recordingTime: this.data.recordingTime + 1 })
+      }, 1000)
+    })
+    recorderManager.onStop((res) => {
+      console.log('录音结束', res)
+      if (this._recordTimer) {
+        clearInterval(this._recordTimer)
+        this._recordTimer = null
+      }
+      this.setData({ isRecording: false })
+      // 语音识别（需接入第三方语音识别服务，此处用占位提示）
+      wx.showModal({
+        title: '语音识别',
+        content: '录音完成（' + this.data.recordingTime + '秒）。\n\n语音识别功能需接入第三方服务（如微信同声传译插件、百度AI等）。\n\n是否手动输入问题？',
+        confirmText: '去输入',
+        cancelText: '取消',
+        success: (modalRes) => {
+          if (modalRes.confirm) {
+            // 聚焦输入框
+          }
+        }
+      })
+    })
+    recorderManager.onError((err) => {
+      console.error('录音错误', err)
+      if (this._recordTimer) {
+        clearInterval(this._recordTimer)
+        this._recordTimer = null
+      }
+      this.setData({ isRecording: false })
+      wx.showToast({ title: '录音失败，请检查权限', icon: 'none' })
+    })
+  },
+
   onShow() {
+    // 设置自定义tabBar选中态
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 })
+    }
     // 检测从 mine 页"再问一次"传来的问题
     const reask = wx.getStorageSync('reaskQuestion')
     if (reask) {
       wx.removeStorageSync('reaskQuestion')
       this.setData({ inputValue: reask }, () => {
+        this.onSend()
+      })
+    }
+  },
+
+  // 导航栏搜索图标点击 → 聚焦到底部输入框
+  onSearchTap() {
+    wx.showToast({ title: '请在底部输入问题', icon: 'none' })
+  },
+
+  // 搜索框输入
+  onSearchInput(e) {
+    this.setData({ searchValue: e.detail.value })
+  },
+
+  // 搜索确认 → 直接作为问题发送
+  onSearchConfirm() {
+    const q = this.data.searchValue.trim()
+    if (q) {
+      this.setData({ inputValue: q, searchValue: '' }, () => {
         this.onSend()
       })
     }
@@ -59,7 +178,7 @@ Page({
       this._scrollToBottom('msg' + userMsg.id)
     })
 
-    // 长等待提示：> 4.5s 还没回复时提示用户"正在努力思考…"，避免以为卡死
+    // 长等待提示：> 4.5s 还没回复时提示用户"正在努力思考…"
     if (this._slowTimer) clearTimeout(this._slowTimer)
     this._slowTimer = setTimeout(() => {
       if (this.data.loading && !this.data.slowToastShown) {
@@ -80,7 +199,9 @@ Page({
         id: 'a' + Date.now(),
         role: 'ai',
         text: res.answer,
-        sources: res.sources || []
+        html: markdown.parse(res.answer),
+        sources: res.sources || [],
+        followUp: this._generateFollowUp(res.answer)
       }
       this.setData({
         messages: [...this.data.messages, aiMsg],
@@ -102,6 +223,7 @@ Page({
           id: 'a' + Date.now(),
           role: 'ai',
           text: '（' + errMsg + '）请稍后再试，或拨打 020-12345 直接咨询。',
+          html: markdown.parse('（' + errMsg + '）请稍后再试，或拨打 020-12345 直接咨询。'),
           sources: []
         }],
         loading: false
@@ -126,7 +248,118 @@ Page({
     })
   },
 
-  // 统一滚到底：先清空 scrollToId 再重设，触发小程序真滚动；80ms 后兜底一次
+  // 点击热门问题
+  onHotTap(e) {
+    const q = e.currentTarget.dataset.q
+    this.setData({ inputValue: q }, () => {
+      this.onSend()
+    })
+  },
+
+  // 点击最近问答 → 填入输入框（不自动发送，让用户确认）
+  onRecentTap(e) {
+    const q = e.currentTarget.dataset.q
+    this.setData({ inputValue: q })
+    wx.showToast({ title: '已填入问题，点击发送', icon: 'none' })
+  },
+
+  // 生成智能追问（基于回答内容关键词匹配，否则随机选3个）
+  _generateFollowUp(answer) {
+    if (!answer) return []
+    const presets = this.data.followUpPresets
+    const matched = []
+    // 关键词匹配
+    if (answer.indexOf('材料') > -1 || answer.indexOf('准备') > -1) {
+      matched.push('还有什么补充材料？')
+    }
+    if (answer.indexOf('流程') > -1 || answer.indexOf('步骤') > -1) {
+      matched.push('每一步需要多久？')
+    }
+    if (answer.indexOf('地点') > -1 || answer.indexOf('地址') > -1) {
+      matched.push('工作时间是几点？')
+    }
+    if (answer.indexOf('时间') > -1 || answer.indexOf('期限') > -1) {
+      matched.push('逾期了怎么办？')
+    }
+    // 补全到3个
+    const shuffled = presets.sort(() => Math.random() - 0.5)
+    const result = [...matched]
+    for (const item of shuffled) {
+      if (result.length >= 3) break
+      if (!result.includes(item)) result.push(item)
+    }
+    return result.slice(0, 3)
+  },
+
+  // 点击智能追问 → 直接发送
+  onFollowUpTap(e) {
+    const q = e.currentTarget.dataset.q
+    this.setData({ inputValue: q }, () => {
+      this.onSend()
+    })
+  },
+
+  // 开始/停止录音
+  onVoiceTap() {
+    if (this.data.isRecording) {
+      recorderManager.stop()
+    } else {
+      wx.authorize({
+        scope: 'scope.record',
+        success: () => {
+          recorderManager.start({
+            duration: 60000,
+            sampleRate: 16000,
+            numberOfChannels: 1,
+            encodeBitRate: 48000,
+            format: 'mp3'
+          })
+        },
+        fail: () => {
+          wx.showModal({
+            title: '需要麦克风权限',
+            content: '请在设置中开启麦克风权限以使用语音输入',
+            confirmText: '去设置',
+            success: (res) => {
+              if (res.confirm) wx.openSetting()
+            }
+          })
+        }
+      })
+    }
+  },
+
+  // 语音播报AI回答
+  onPlayVoice(e) {
+    const id = e.currentTarget.dataset.id
+    const text = e.currentTarget.dataset.text
+    if (!text) return
+
+    // 如果正在播放同一条，则停止
+    if (this.data.playingId === id) {
+      innerAudioContext.stop()
+      this.setData({ playingId: '' })
+      return
+    }
+
+    // 停止之前的播放
+    innerAudioContext.stop()
+
+    // 语音播报（TTS）需接入第三方服务，此处用系统提示占位
+    wx.showToast({
+      title: '语音播报功能需接入TTS服务',
+      icon: 'none',
+      duration: 2000
+    })
+
+    // 实际接入TTS后，用以下代码播放：
+    // innerAudioContext.src = ttsAudioUrl
+    // innerAudioContext.play()
+    // this.setData({ playingId: id })
+    // innerAudioContext.onEnded(() => { this.setData({ playingId: '' }) })
+  },
+
+  // 统一滚到底
   _scrollToBottom(targetId) {
     const id = targetId || (this.data.messages.length
       ? 'msg' + this.data.messages[this.data.messages.length - 1].id

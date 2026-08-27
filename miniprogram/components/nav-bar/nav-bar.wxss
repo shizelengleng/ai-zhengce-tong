@@ -1,0 +1,100 @@
+/* components/nav-bar/nav-bar.wxss */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  box-sizing: border-box;
+}
+
+.nav-bar.gradient {
+  background: linear-gradient(180deg, #1565C0 0%, #1E88E5 100%);
+}
+
+.nav-bar.white {
+  background: #fff;
+  border-bottom: 1rpx solid #EEE;
+}
+
+.nav-bar.white .nav-title {
+  color: #1A1A1A;
+}
+
+.nav-bar.white .nav-back-icon {
+  color: #1A1A1A;
+}
+
+.nav-bar.transparent {
+  background: transparent;
+}
+
+.nav-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.nav-back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-back-icon {
+  font-size: 48rpx;
+  color: #fff;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.nav-back-placeholder {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #fff;
+  max-width: 400rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-right {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  min-width: 60rpx;
+  min-height: 60rpx;
+  justify-content: flex-end;
+}
+
+.nav-right-icon {
+  font-size: 36rpx;
+  color: #fff;
+}
+
+.nav-right-text {
+  font-size: 28rpx;
+  color: #fff;
+}
+
+.nav-bar-placeholder {
+  width: 100%;
+  flex-shrink: 0;
+}

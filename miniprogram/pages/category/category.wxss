@@ -1,13 +1,24 @@
-/* category.wxss —— 分类页样式 */
+/* category.wxss —— 分类页样式（融合版：搜索 + 分类网格 + 热门TOP5 + 政策列表） */
+
 .container {
   padding: 24rpx;
 }
 
-.page-title {
-  font-size: 36rpx;
-  font-weight: bold;
+/* 搜索栏 */
+.category-search {
   margin-bottom: 24rpx;
-  color: #333;
+}
+.search-clear {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #CCC;
+  color: #fff;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12rpx;
 }
 
 /* 分类网格 */
@@ -15,63 +26,178 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  margin-bottom: 8rpx;
 }
 .category-card {
   width: 48%;
   background: #fff;
   border-radius: 16rpx;
-  padding: 32rpx 24rpx;
-  margin-bottom: 20rpx;
+  padding: 28rpx 20rpx;
+  margin-bottom: 16rpx;
   text-align: center;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03);
   box-sizing: border-box;
-}
-.category-card.active {
-  border: 2rpx solid #3A7AFE;
+  border: 2rpx solid #E8E8E8;
+  transition: all 0.2s;
 }
 .cat-icon {
-  font-size: 56rpx;
-  margin-bottom: 12rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38rpx;
+  margin: 0 auto 14rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
 }
 .cat-name {
-  font-size: 30rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 6rpx;
 }
 .cat-count {
   font-size: 22rpx;
   color: #999;
+  font-weight: 500;
+}
+.cat-update {
+  color: #BBB;
+  margin-left: 4rpx;
+}
+
+/* 热门政策TOP5 */
+.hot-title {
+  margin-top: 16rpx;
+}
+.hot-list {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  border: 1rpx solid #E8E8E8;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03);
+  margin-bottom: 16rpx;
+}
+.hot-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+.hot-item:last-child {
+  border-bottom: none;
+}
+.hot-rank {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+.hot-rank.rank-top {
+  background: linear-gradient(135deg, #1565C0, #1E88E5);
+  color: #fff;
+  box-shadow: 0 2rpx 8rpx rgba(30,136,229,0.3);
+}
+.hot-rank.rank-normal {
+  background: #F0F2F5;
+  color: #999;
+}
+.hot-info {
+  flex: 1;
+  min-width: 0;
+}
+.hot-policy-title {
+  font-size: 27rpx;
+  color: #1A1A1A;
+  font-weight: 500;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hot-policy-meta {
+  display: flex;
+  align-items: center;
+  font-size: 22rpx;
+  color: #999;
+}
+.hot-source {
+  margin-right: 16rpx;
+}
+.hot-views {
+  color: #BBB;
+}
+.hot-arrow {
+  font-size: 36rpx;
+  color: #CCC;
+  margin-left: 12rpx;
+  flex-shrink: 0;
 }
 
 /* 政策列表 */
 .policy-list {
-  margin-top: 16rpx;
-}
-.list-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  margin-bottom: 16rpx;
-  color: #333;
-  padding-left: 16rpx;
-  border-left: 6rpx solid #3A7AFE;
+  margin-top: 8rpx;
 }
 .policy-item {
   background: #fff;
-  border-radius: 12rpx;
-  padding: 28rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+  border-radius: 14rpx;
+  padding: 24rpx 24rpx 24rpx 28rpx;
+  margin-bottom: 14rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03);
+  border-left: 5rpx solid #1E88E5;
+  position: relative;
 }
 .policy-title {
-  font-size: 30rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 10rpx;
+  line-height: 1.4;
+  padding-right: 80rpx;
 }
 .policy-meta {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.policy-source {
+  color: #888;
+}
+.policy-docno {
+  color: #1565C0;
+  background: #E3F2FD;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+}
+.policy-tag {
+  position: absolute;
+  right: 20rpx;
+  top: 24rpx;
+  font-size: 20rpx;
+  color: #43A047;
+  background: #E8F5E9;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-weight: 500;
+}
+
+/* 未选中分类提示 */
+.empty-tip {
+  text-align: center;
+  color: #BBB;
+  padding: 40rpx 0;
+  font-size: 24rpx;
 }
 
 /* loading 占位 */

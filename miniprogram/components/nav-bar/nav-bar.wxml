@@ -1,0 +1,21 @@
+<!-- components/nav-bar/nav-bar.wxml -->
+<view class="nav-bar {{bgType}}" style="padding-top: {{statusBarHeight}}px; height: calc({{statusBarHeight}}px + {{navBarHeight}}px);">
+  <view class="nav-bar-content" style="height: {{navBarHeight}}px;">
+    <!-- 左侧返回按钮 -->
+    <view wx:if="{{showBack}}" class="nav-back" bindtap="onBack" style="margin-left: {{menuButtonRight}}px;">
+      <text class="nav-back-icon">‹</text>
+    </view>
+    <view wx:else class="nav-back-placeholder" style="width: {{menuButtonWidth + menuButtonRight}}px;"></view>
+    
+    <!-- 标题 -->
+    <view class="nav-title">{{title}}</view>
+    
+    <!-- 右侧 -->
+    <view class="nav-right" style="margin-right: {{menuButtonRight}}px;" bindtap="onRightTap">
+      <text wx:if="{{rightIcon}}" class="nav-right-icon">{{rightIcon}}</text>
+      <text wx:if="{{rightText}}" class="nav-right-text">{{rightText}}</text>
+    </view>
+  </view>
+</view>
+<!-- 占位，防止内容被导航栏遮挡 -->
+<view class="nav-bar-placeholder" style="height: calc({{statusBarHeight}}px + {{navBarHeight}}px);"></view>

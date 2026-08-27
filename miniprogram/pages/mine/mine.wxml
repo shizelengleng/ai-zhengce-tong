@@ -1,24 +1,70 @@
-<!-- mine.wxml —— 我的页（历史记录显示答案+点击展开+再问一次+去掉假登录） -->
+<!-- mine.wxml —— 我的页（融合版：用户卡片 + 数据统计 + 历史 + 功能菜单） -->
+<nav-bar title="我的" show-back="{{false}}"></nav-bar>
 <view class="container">
-  <!-- 用户卡片（去掉假登录，改为产品标识） -->
+
+  <!-- 用户卡片（蓝色渐变） -->
   <view class="user-card">
-    <view class="avatar">📄</view>
-    <view class="user-info">
-      <view class="user-name">AI政策通</view>
-      <view class="user-desc">天河区社区便民政策问答助手</view>
+    <view class="user-card-top">
+      <view class="avatar">💬</view>
+      <view class="user-info">
+        <view class="user-name">AI政策通</view>
+        <view class="user-desc">天河区社区便民政策问答助手</view>
+      </view>
+    </view>
+    <view class="user-card-actions">
+      <view class="user-action-btn">编辑资料</view>
+      <view class="user-action-btn">设置</view>
     </view>
   </view>
 
-  <!-- 问答历史（默认收起，点击标题展开列表） -->
+  <!-- 我的数据统计 -->
+  <view class="stats-card-white">
+    <view wx:for="{{myStats}}" wx:key="label" class="stats-item">
+      <view class="stats-item-icon">{{item.icon}}</view>
+      <view class="stats-item-num">{{item.num}}</view>
+      <view class="stats-item-label">{{item.label}}</view>
+    </view>
+  </view>
+
+  <!-- 我的收藏 -->
   <view class="section">
-    <view class="section-title clickable" bindtap="onToggleHistory">
-      问答历史（{{history.length}} 条）{{showHistory ? '▲' : '▼'}}
+    <view class="section-title clickable-title" bindtap="onToggleFavorite">
+      我的收藏（{{favoriteList.length}} 条）
+      <text class="title-extra">{{showFavorite ? '收起 ▲' : '展开 ▼'}}</text>
+    </view>
+
+    <view wx:if="{{showFavorite}}">
+      <view wx:if="{{favoriteList.length}}" class="menu-list">
+        <view wx:for="{{favoriteList}}" wx:key="_id" class="menu-item" bindtap="onFavoriteTap" data-id="{{item._id}}">
+          <view class="menu-icon" style="background:#FFF7E6;">⭐</view>
+          <view class="menu-info">
+            <view class="menu-name">{{item.title}}</view>
+            <view class="menu-desc">{{item.categoryName || item.source}} · {{item.add_time}}</view>
+          </view>
+          <view class="menu-remove" catchtap="onRemoveFavorite" data-id="{{item._id}}">✕</view>
+        </view>
+      </view>
+      <view wx:else class="empty">
+        <view class="empty-icon">⭐</view>
+        <view>暂无收藏，去详情页收藏政策吧</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 问答历史 -->
+  <view class="section">
+    <view class="section-title clickable-title" bindtap="onToggleHistory">
+      问答历史（{{history.length}} 条）
+      <text class="title-extra">{{showHistory ? '收起 ▲' : '展开 ▼'}}</text>
     </view>
 
     <view wx:if="{{showHistory}}">
-      <!-- loading -->
-      <view wx:if="{{loading}}" class="loading-box">
-        <view class="loading-text">加载中…</view>
+      <!-- loading 骨架屏 -->
+      <view wx:if="{{loading}}" class="skeleton-history">
+        <view wx:for="{{[1,2,3]}}" wx:key="*this" class="skeleton-history-item">
+          <view class="skeleton-line long"></view>
+          <view class="skeleton-line xshort"></view>
+        </view>
       </view>
 
       <!-- 历史列表 -->
@@ -26,7 +72,7 @@
         <view wx:for="{{history}}" wx:key="_id" class="history-item" bindtap="onHistoryTap" data-id="{{item._id}}">
           <view class="history-q-row">
             <text class="history-q">{{item.question}}</text>
-            <text class="expand-hint">{{expandedId === item._id ? '收起 ▲' : '展开 ▼'}}</text>
+            <text class="expand-hint">{{expandedId === item._id ? '▲' : '▼'}}</text>
           </view>
           <!-- 展开时显示答案 -->
           <view wx:if="{{expandedId === item._id}}" class="history-a-box">
@@ -40,16 +86,27 @@
       </view>
 
       <!-- 空状态 -->
-      <view wx:else class="empty">暂无历史记录</view>
+      <view wx:else class="empty">
+        <view class="empty-icon">📝</view>
+        <view>暂无历史记录</view>
+      </view>
     </view>
   </view>
 
-  <!-- 关于 -->
+  <!-- 功能菜单 -->
   <view class="section">
-    <view class="section-title">关于</view>
-    <view class="about-card">
-      <view class="about-text">AI政策通 · 天河区政策问答助手</view>
-      <view class="about-version">版本 v0.2.0</view>
+    <view class="section-title">功能菜单</view>
+    <view class="menu-list">
+      <view wx:for="{{menuList}}" wx:key="action" class="menu-item" bindtap="onMenuTap" data-action="{{item.action}}">
+        <view class="menu-icon">{{item.icon}}</view>
+        <view class="menu-info">
+          <view class="menu-name">{{item.name}}</view>
+          <view class="menu-desc">{{item.desc}}</view>
+        </view>
+        <view class="menu-arrow">›</view>
+      </view>
     </view>
   </view>
+
+  <view class="mine-bottom-pad"></view>
 </view>
